@@ -64,7 +64,7 @@ npm run dev
 
 - `params` and `searchParams` are Promises in Next.js 15 — always `await` them in server components
 - `useSearchParams()` requires a `<Suspense>` boundary in client components — wrap the consuming component and export a shell that wraps it
-- Supabase SSR `setAll` cookie callback needs an explicit type annotation. Use `type SetAllCookies = Parameters<CookieMethodsServer['setAll']>[0]` (import `CookieMethodsServer` from `@supabase/ssr`) and annotate the parameter with that type. This applies in both `middleware.ts` and `app/auth/callback/route.ts`.
+- Supabase SSR `setAll` cookie callback needs an explicit type annotation. Use `type SetAllCookies = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]` (import `CookieMethodsServer` from `@supabase/ssr`) and annotate the parameter with that type. `NonNullable` is required because `setAll` is optional on the interface. This applies in both `middleware.ts` and `app/auth/callback/route.ts`.
 
 ## Deploying
 

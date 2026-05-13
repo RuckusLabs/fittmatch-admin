@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/types/database'
 
-type SetAllCookies = Parameters<CookieMethodsServer['setAll']>[0]
+type SetAllCookies = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
