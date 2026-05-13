@@ -104,29 +104,28 @@ export default async function UserDetailPage({
             </Avatar>
             <div className="flex-1">
               <div className="flex items-start justify-between gap-3 flex-wrap">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-xl font-bold">
-                  {profile.full_name ?? 'No name'}
-                </h1>
-                <Badge variant="secondary" className="capitalize">
-                  {profile.role}
-                </Badge>
-                {profile.is_banned && (
-                  <Badge variant="destructive">Banned</Badge>
-                )}
-                {subscription?.status === 'active' && (
-                  <Badge className="capitalize bg-green-600">
-                    {subscription.tier ?? 'Pro'}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-xl font-bold">
+                    {profile.full_name ?? 'No name'}
+                  </h1>
+                  <Badge variant="secondary" className="capitalize">
+                    {profile.role}
                   </Badge>
-                )}
-              </div>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <Link href={`/users/${id}/edit`}>
-                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
-                  Edit Profile
-                </Link>
-              </Button>
+                  {profile.is_banned && (
+                    <Badge variant="destructive">Banned</Badge>
+                  )}
+                  {subscription?.status === 'active' && (
+                    <Badge className="capitalize bg-green-600">
+                      {subscription.tier ?? 'Pro'}
+                    </Badge>
+                  )}
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/users/${id}/edit`}>
+                    <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                    Edit Profile
+                  </Link>
+                </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {profile.email}
