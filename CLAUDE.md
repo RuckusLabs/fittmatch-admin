@@ -8,6 +8,7 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 
 - All data fetching is server-side (server components + `createServiceClient()`)
 - Filters are URL searchParams — no client state for filtering/pagination
+- Pagination pattern: `{ count: 'exact' }` in `.select()`, `.range(offset, offset + PAGE_SIZE - 1)` (must come before `.returns<T>()`), `?page=` searchParam, and a `buildUrl(newPage)` helper that preserves all other active searchParams. PAGE_SIZE = 50 across all paginated pages (users, listings, audit-log).
 - Server actions in `lib/actions.ts` always end with `logAudit()` + `revalidatePath()`
 - `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
 - shadcn UI components live in `components/ui/` — installed via `npx shadcn@latest add`, never hand-written

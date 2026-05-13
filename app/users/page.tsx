@@ -18,24 +18,28 @@ type UserRow = {
 
 const ROLE_TABS = ['all', 'coach', 'client']
 const STATUS_TABS = ['all', 'active', 'banned']
+const PAGE_SIZE = 50
 
 export default async function UsersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; role?: string; status?: string }>
+  searchParams: Promise<{ q?: string; role?: string; status?: string; page?: string }>
 }) {
-  const { q, role, status } = await searchParams
+  const { q, role, status, page } = await searchParams
   const currentRole = role ?? 'all'
   const currentStatus = status ?? 'all'
+  const currentPage = Math.max(1, parseInt(page ?? '1', 10))
+  const offset = (currentPage - 1) * PAGE_SIZE
   const supabase = createServiceClient()
 
   let query = supabase
     .from('profiles')
     .select(
-      'id, full_name, email, role, is_banned, created_at, subscriptions(tier, status)'
+      'id, full_name, email, role, is_banned, created_at, subscriptions(tier, status)',
+      { count: 'exact' }
     )
     .order('created_at', { ascending: false })
-    .limit(100)
+    .range(offset, offset + PAGE_SIZE - 1)
 
   if (q) {
     query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
@@ -49,7 +53,18 @@ export default async function UsersPage({
     query = query.neq('is_banned', true)
   }
 
-  const { data: users } = await query.returns<UserRow[]>()
+  const { data: users, count } = await query.returns<UserRow[]>()
+
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE)
+
+  function buildUrl(newPage: number) {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (currentRole !== 'all') params.set('role', currentRole)
+    if (currentStatus !== 'all') params.set('status', currentStatus)
+    if (newPage > 1) params.set('page', String(newPage))
+    return `/users${params.toString() ? `?${params}` : ''}`
+  }
 
   function getInitials(name: string | null) {
     if (!name) return '?'
@@ -101,7 +116,7 @@ export default async function UsersPage({
           {ROLE_TABS.map((tab) => (
             <Link
               key={tab}
-              href={`/users?${new URLSearchParams({ ...(q ? { q } : {}), role: tab, ...(status ? { status } : {}) }).toString()}`}
+              href={`/users?${new URLSearchParams({ ...(q ? { q } : {}), role: tab, ...(currentStatus !== 'all' ? { status: currentStatus } : {}) }).toString()}`}
               className={cn(
                 'px-2.5 py-1 text-xs rounded font-medium capitalize transition-colors',
                 currentRole === tab
@@ -118,7 +133,7 @@ export default async function UsersPage({
           {STATUS_TABS.map((tab) => (
             <Link
               key={tab}
-              href={`/users?${new URLSearchParams({ ...(q ? { q } : {}), ...(role ? { role } : {}), status: tab }).toString()}`}
+              href={`/users?${new URLSearchParams({ ...(q ? { q } : {}), ...(currentRole !== 'all' ? { role: currentRole } : {}), status: tab }).toString()}`}
               className={cn(
                 'px-2.5 py-1 text-xs rounded font-medium capitalize transition-colors',
                 currentStatus === tab
@@ -133,10 +148,22 @@ export default async function UsersPage({
       </div>
 
       <div className="rounded-lg border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b">
+        <div className="px-4 py-3 border-b flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            {users?.length ?? 0} users
+            {count ?? 0} users · page {currentPage} of {totalPages || 1}
           </p>
+          <div className="flex items-center gap-2">
+            {currentPage > 1 && (
+              <Link href={buildUrl(currentPage - 1)} className="text-sm text-blue-600 hover:underline">
+                ← Previous
+              </Link>
+            )}
+            {currentPage < totalPages && (
+              <Link href={buildUrl(currentPage + 1)} className="text-sm text-blue-600 hover:underline">
+                Next →
+              </Link>
+            )}
+          </div>
         </div>
         <table className="w-full text-sm">
           <thead>

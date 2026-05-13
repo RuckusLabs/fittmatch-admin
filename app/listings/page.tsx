@@ -23,27 +23,42 @@ const statusBadgeClass: Record<string, string> = {
   removed: 'bg-gray-100 text-gray-500 border-gray-200',
 }
 
+const PAGE_SIZE = 50
+
 export default async function ListingsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; page?: string }>
 }) {
-  const { status } = await searchParams
+  const { status, page } = await searchParams
   const currentStatus = status ?? 'all'
+  const currentPage = Math.max(1, parseInt(page ?? '1', 10))
+  const offset = (currentPage - 1) * PAGE_SIZE
   const supabase = createServiceClient()
 
   let query = supabase
     .from('job_listings')
     .select(
-      'id, title, status, boosted_until, created_at, client:client_profiles!job_listings_client_id_fkey(company_name)'
+      'id, title, status, boosted_until, created_at, client:client_profiles!job_listings_client_id_fkey(company_name)',
+      { count: 'exact' }
     )
     .order('created_at', { ascending: false })
+    .range(offset, offset + PAGE_SIZE - 1)
 
   if (currentStatus !== 'all') {
     query = query.eq('status', currentStatus)
   }
 
-  const { data: listings } = await query.returns<ListingRow[]>()
+  const { data: listings, count } = await query.returns<ListingRow[]>()
+
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE)
+
+  function buildUrl(newPage: number) {
+    const params = new URLSearchParams()
+    if (currentStatus !== 'all') params.set('status', currentStatus)
+    if (newPage > 1) params.set('page', String(newPage))
+    return `/listings${params.toString() ? `?${params}` : ''}`
+  }
 
   return (
     <div className="space-y-4">
@@ -52,7 +67,7 @@ export default async function ListingsPage({
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab}
-            href={`/listings?status=${tab}`}
+            href={tab === 'all' ? '/listings' : `/listings?status=${tab}`}
             className={cn(
               'px-3 py-1.5 text-sm rounded-md font-medium transition-colors capitalize',
               currentStatus === tab
@@ -73,10 +88,22 @@ export default async function ListingsPage({
       </div>
 
       <div className="rounded-lg border bg-white overflow-hidden">
-        <div className="px-4 py-3 border-b">
+        <div className="px-4 py-3 border-b flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            {listings?.length ?? 0} listings
+            {count ?? 0} listings · page {currentPage} of {totalPages || 1}
           </p>
+          <div className="flex items-center gap-2">
+            {currentPage > 1 && (
+              <Link href={buildUrl(currentPage - 1)} className="text-sm text-blue-600 hover:underline">
+                ← Previous
+              </Link>
+            )}
+            {currentPage < totalPages && (
+              <Link href={buildUrl(currentPage + 1)} className="text-sm text-blue-600 hover:underline">
+                Next →
+              </Link>
+            )}
+          </div>
         </div>
         <table className="w-full text-sm">
           <thead>

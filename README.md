@@ -58,6 +58,7 @@ After that, additional admins can be granted directly from any user's detail pag
 From the **Users** screen you can:
 
 - **Search** by name or email, filter by role (coach / client) and status (active / banned)
+- **Paginate** — 50 users per page via `?page=` searchParam; all active filters are preserved across page navigation
 - **Create users** — `/users/new` creates a coach or client account via `auth.admin.createUser`. For client accounts you can optionally set company name and type at creation time. The user receives a magic-link email to activate their account.
 - **View a user** — metrics (swipes, matches, messages), reports against them, subscription status
 - **Edit profile** — `/users/[id]/edit` lets you update a coach's bio, title, specialties, rates, and experience level, or a client's company name, type, bio, website, and team size
@@ -69,6 +70,7 @@ From the **Users** screen you can:
 From the **Listings** screen you can:
 
 - **Filter** by status (live / draft / removed)
+- **Paginate** — 50 listings per page via `?page=` searchParam; status filter is preserved across page navigation
 - **Edit a listing** — `/listings/[id]` lets you update title, description, status, role type, pay range, and boost expiry. A "Clear boost" button removes an active boost without clearing the date field.
 - **Create a listing** — `/listings/new` creates a listing on behalf of any existing client account
 - **Remove a listing** — sets status to `removed` inline from the list view
