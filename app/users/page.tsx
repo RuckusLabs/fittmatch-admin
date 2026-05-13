@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
+import { UserPlus } from 'lucide-react'
 
 type UserRow = {
   id: string
@@ -34,7 +36,6 @@ export default async function UsersPage({
     )
     .order('created_at', { ascending: false })
     .limit(100)
-    .returns<UserRow[]>()
 
   if (q) {
     query = query.ilike('full_name', `%${q}%`)
@@ -48,7 +49,7 @@ export default async function UsersPage({
     query = query.neq('is_banned', true)
   }
 
-  const { data: users } = await query
+  const { data: users } = await query.returns<UserRow[]>()
 
   function getInitials(name: string | null) {
     if (!name) return '?'
@@ -67,8 +68,9 @@ export default async function UsersPage({
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
-      <form method="GET" action="/users" className="flex items-center gap-3 flex-wrap">
+      {/* Top bar: search + new user button */}
+      <div className="flex items-center justify-between gap-3">
+        <form method="GET" action="/users" className="flex items-center gap-3 flex-wrap">
         <input
           type="text"
           name="q"
@@ -78,13 +80,20 @@ export default async function UsersPage({
         />
         {role && <input type="hidden" name="role" value={role} />}
         {status && <input type="hidden" name="status" value={status} />}
-        <button
-          type="submit"
-          className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90"
-        >
-          Search
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="px-3 py-2 text-sm rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90"
+          >
+            Search
+          </button>
+        </form>
+        <Button asChild size="sm">
+          <Link href="/users/new">
+            <UserPlus className="h-4 w-4 mr-1.5" />
+            New User
+          </Link>
+        </Button>
+      </div>
 
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-1">

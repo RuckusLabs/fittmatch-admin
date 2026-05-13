@@ -37,13 +37,12 @@ export default async function ListingsPage({
       'id, title, status, boosted_until, created_at, client:client_profiles!job_listings_client_id_fkey(company_name)'
     )
     .order('created_at', { ascending: false })
-    .returns<ListingRow[]>()
 
   if (currentStatus !== 'all') {
     query = query.eq('status', currentStatus)
   }
 
-  const { data: listings } = await query
+  const { data: listings } = await query.returns<ListingRow[]>()
 
   return (
     <div className="space-y-4">

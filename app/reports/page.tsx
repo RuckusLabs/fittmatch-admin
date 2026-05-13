@@ -34,13 +34,12 @@ export default async function ReportsPage({
       'id, reason, priority, status, created_at, reported_id, reported_listing_id, reporter:profiles!reports_reporter_id_fkey(full_name), reported:profiles!reports_reported_id_fkey(full_name)'
     )
     .order('created_at', { ascending: false })
-    .returns<ReportRow[]>()
 
   if (currentStatus !== 'all') {
     query = query.eq('status', currentStatus)
   }
 
-  const { data: reports } = await query
+  const { data: reports } = await query.returns<ReportRow[]>()
 
   async function bulkMarkReviewing(formData: FormData) {
     'use server'

@@ -163,6 +163,73 @@ export async function grantAdminRole(
   return { error: null }
 }
 
+export async function createUser(
+  email: string,
+  fullName: string,
+  role: 'coach' | 'client',
+  extras?: { company_name?: string; company_type?: string }
+): Promise<{ error: string | null; userId: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { data: authData, error: authError } =
+    await serviceClient.auth.admin.createUser({
+      email,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    })
+
+  if (authError) return { error: authError.message, userId: null }
+
+  const userId = authData.user.id
+
+  const { error: profileError } = await serviceClient.from('profiles').insert({
+    id: userId,
+    email,
+    full_name: fullName,
+    role,
+  })
+
+  if (profileError) {
+    await serviceClient.auth.admin.deleteUser(userId)
+    return { error: profileError.message, userId: null }
+  }
+
+  if (role === 'coach') {
+    const { error } = await serviceClient
+      .from('coach_profiles')
+      .insert({ id: userId })
+    if (error) return { error: error.message, userId: null }
+  } else {
+    const { error } = await serviceClient.from('client_profiles').insert({
+      id: userId,
+      ...(extras?.company_name ? { company_name: extras.company_name } : {}),
+      ...(extras?.company_type ? { company_type: extras.company_type } : {}),
+    })
+    if (error) return { error: error.message, userId: null }
+  }
+
+  await logAudit('create_user', 'user', userId, { email, role })
+  revalidatePath('/users')
+  return { error: null, userId }
+}
+
+export async function revokeAdminRole(
+  userId: string
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('admin_users')
+    .delete()
+    .eq('user_id', userId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('revoke_admin_role', 'user', userId, {})
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
 export async function markReportsAsReviewing(
   reportIds: string[]
 ): Promise<{ error: string | null }> {

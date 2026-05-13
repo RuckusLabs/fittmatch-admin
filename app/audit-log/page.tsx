@@ -37,13 +37,12 @@ export default async function AuditLogPage({
     )
     .order('created_at', { ascending: false })
     .range(offset, offset + PAGE_SIZE - 1)
-    .returns<AuditRow[]>()
 
   if (adminFilter) {
     query = query.eq('admin_id', adminFilter)
   }
 
-  const { data: logs, count } = await query
+  const { data: logs, count } = await query.returns<AuditRow[]>()
 
   const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE)
 

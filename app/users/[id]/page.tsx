@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { BanPanel } from '@/components/BanPanel'
+import { GrantAdminPanel } from '@/components/GrantAdminPanel'
 import { ReportBadge } from '@/components/ReportBadge'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -24,6 +25,7 @@ export default async function UserDetailPage({
     { count: messagesSent },
     { data: reports },
     { data: auditLog },
+    { data: adminUser },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -65,6 +67,11 @@ export default async function UserDetailPage({
       .eq('target_id', id)
       .order('created_at', { ascending: false })
       .limit(20),
+    supabase
+      .from('admin_users')
+      .select('user_id, role')
+      .eq('user_id', id)
+      .maybeSingle(),
   ])
 
   if (!profile) notFound()
@@ -256,6 +263,15 @@ export default async function UserDetailPage({
           userId={id}
           isBanned={profile.is_banned ?? false}
           bannedReason={profile.banned_reason}
+        />
+      </div>
+
+      {/* Admin access panel */}
+      <div className="max-w-sm">
+        <GrantAdminPanel
+          userId={id}
+          isAdmin={!!adminUser}
+          adminRole={(adminUser as any)?.role ?? null}
         />
       </div>
 
