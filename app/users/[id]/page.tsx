@@ -5,9 +5,11 @@ import { BanPanel } from '@/components/BanPanel'
 import { GrantAdminPanel } from '@/components/GrantAdminPanel'
 import { ReportBadge } from '@/components/ReportBadge'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
+import { Pencil } from 'lucide-react'
 
 export default async function UserDetailPage({
   params,
@@ -101,6 +103,7 @@ export default async function UserDetailPage({
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl font-bold">
                   {profile.full_name ?? 'No name'}
@@ -116,6 +119,14 @@ export default async function UserDetailPage({
                     {subscription.tier ?? 'Pro'}
                   </Badge>
                 )}
+              </div>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/users/${id}/edit`}>
+                  <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                  Edit Profile
+                </Link>
+              </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 {profile.email}

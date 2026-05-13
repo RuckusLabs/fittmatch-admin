@@ -16,10 +16,13 @@ Internal moderation and operations dashboard for the FittMatch platform.
 | `/` | Dashboard — stat cards + recent reports + signup sparkline |
 | `/reports` | Reports queue with status tabs and bulk actions |
 | `/reports/[id]` | Report detail + resolution panel |
-| `/users` | User search with role/status filters |
+| `/users` | User search by name or email, role/status filters |
 | `/users/new` | Create a new coach or client user |
 | `/users/[id]` | User detail, metrics, ban/unban, grant/revoke admin access |
-| `/listings` | Job listings with remove action |
+| `/users/[id]/edit` | Edit coach or client profile fields |
+| `/listings` | Job listings with edit, remove, and status filter |
+| `/listings/new` | Create a listing on behalf of a client |
+| `/listings/[id]` | Edit listing title, description, status, pay, boost |
 | `/subscriptions` | Revenue table + MRR estimate |
 | `/audit-log` | Paginated admin action history |
 
@@ -54,11 +57,21 @@ After that, additional admins can be granted directly from any user's detail pag
 
 From the **Users** screen you can:
 
-- **Search** by name, filter by role (coach / client) and status (active / banned)
+- **Search** by name or email, filter by role (coach / client) and status (active / banned)
 - **Create users** — `/users/new` creates a coach or client account via `auth.admin.createUser`. For client accounts you can optionally set company name and type at creation time. The user receives a magic-link email to activate their account.
 - **View a user** — metrics (swipes, matches, messages), reports against them, subscription status
+- **Edit profile** — `/users/[id]/edit` lets you update a coach's bio, title, specialties, rates, and experience level, or a client's company name, type, bio, website, and team size
 - **Ban / unban** — with a reason; logged to the audit log
 - **Grant / revoke admin access** — from the user detail page, choose a role (Moderator, Admin, Super Admin) and grant in one click. Revoke is equally one-click.
+
+## Listing management
+
+From the **Listings** screen you can:
+
+- **Filter** by status (live / draft / removed)
+- **Edit a listing** — `/listings/[id]` lets you update title, description, status, role type, pay range, and boost expiry. A "Clear boost" button removes an active boost without clearing the date field.
+- **Create a listing** — `/listings/new` creates a listing on behalf of any existing client account
+- **Remove a listing** — sets status to `removed` inline from the list view
 
 ## Deployment
 

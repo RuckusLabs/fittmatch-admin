@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { PlusCircle } from 'lucide-react'
 
 type ListingRow = {
   id: string
@@ -46,7 +47,8 @@ export default async function ListingsPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 border-b pb-4">
+      <div className="flex items-center justify-between gap-2 border-b pb-4">
+        <div className="flex items-center gap-2">
         {STATUS_TABS.map((tab) => (
           <Link
             key={tab}
@@ -61,6 +63,13 @@ export default async function ListingsPage({
             {tab}
           </Link>
         ))}
+        </div>
+        <Button asChild size="sm">
+          <Link href="/listings/new">
+            <PlusCircle className="h-4 w-4 mr-1.5" />
+            New Listing
+          </Link>
+        </Button>
       </div>
 
       <div className="rounded-lg border bg-white overflow-hidden">
@@ -112,23 +121,28 @@ export default async function ListingsPage({
                     : '—'}
                 </td>
                 <td className="px-4 py-2.5">
-                  {listing.status !== 'removed' && (
-                    <form
-                      action={async () => {
-                        'use server'
-                        await removeListing(listing.id)
-                      }}
-                    >
-                      <Button
-                        type="submit"
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive hover:bg-red-50 h-7 px-2"
+                  <div className="flex items-center gap-1">
+                    <Button asChild variant="ghost" size="sm" className="h-7 px-2">
+                      <Link href={`/listings/${listing.id}`}>Edit</Link>
+                    </Button>
+                    {listing.status !== 'removed' && (
+                      <form
+                        action={async () => {
+                          'use server'
+                          await removeListing(listing.id)
+                        }}
                       >
-                        Remove
-                      </Button>
-                    </form>
-                  )}
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:text-destructive hover:bg-red-50 h-7 px-2"
+                        >
+                          Remove
+                        </Button>
+                      </form>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

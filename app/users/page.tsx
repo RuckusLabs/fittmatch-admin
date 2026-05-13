@@ -38,7 +38,7 @@ export default async function UsersPage({
     .limit(100)
 
   if (q) {
-    query = query.ilike('full_name', `%${q}%`)
+    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
   }
   if (currentRole !== 'all') {
     query = query.eq('role', currentRole)
@@ -75,7 +75,7 @@ export default async function UsersPage({
           type="text"
           name="q"
           defaultValue={q ?? ''}
-          placeholder="Search by name..."
+          placeholder="Search by name or email..."
           className="rounded-md border border-input bg-background px-3 py-2 text-sm w-56 focus:outline-none focus:ring-2 focus:ring-ring"
         />
         {role && <input type="hidden" name="role" value={role} />}

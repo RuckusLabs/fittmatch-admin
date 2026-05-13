@@ -163,6 +163,111 @@ export async function grantAdminRole(
   return { error: null }
 }
 
+export async function updateListing(
+  listingId: string,
+  data: {
+    title?: string
+    description?: string | null
+    status?: string | null
+    pay_min?: number | null
+    pay_max?: number | null
+    pay_negotiable?: boolean | null
+    role_type?: string | null
+    boosted_until?: string | null
+  }
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('job_listings')
+    .update(data)
+    .eq('id', listingId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('update_listing', 'listing', listingId, data as Record<string, unknown>)
+  revalidatePath('/listings')
+  revalidatePath(`/listings/${listingId}`)
+  return { error: null }
+}
+
+export async function createListing(data: {
+  client_id: string
+  title: string
+  description?: string | null
+  status?: string | null
+  pay_min?: number | null
+  pay_max?: number | null
+  pay_negotiable?: boolean | null
+  role_type?: string | null
+}): Promise<{ error: string | null; listingId: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { data: listing, error } = await serviceClient
+    .from('job_listings')
+    .insert(data)
+    .select('id')
+    .single()
+
+  if (error) return { error: error.message, listingId: null }
+
+  await logAudit('create_listing', 'listing', listing.id, {
+    client_id: data.client_id,
+    title: data.title,
+  })
+  revalidatePath('/listings')
+  return { error: null, listingId: listing.id }
+}
+
+export async function updateCoachProfile(
+  userId: string,
+  data: {
+    title?: string | null
+    bio?: string | null
+    hourly_rate_min?: number | null
+    hourly_rate_max?: number | null
+    experience_band?: string | null
+    specialties?: string[] | null
+  }
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('coach_profiles')
+    .update(data)
+    .eq('id', userId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('update_coach_profile', 'user', userId, data as Record<string, unknown>)
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+export async function updateClientProfile(
+  userId: string,
+  data: {
+    company_name?: string | null
+    company_type?: string | null
+    bio?: string | null
+    website?: string | null
+    team_size_band?: string | null
+  }
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('client_profiles')
+    .update(data)
+    .eq('id', userId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('update_client_profile', 'user', userId, data as Record<string, unknown>)
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
 export async function createUser(
   email: string,
   fullName: string,

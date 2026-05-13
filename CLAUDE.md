@@ -9,7 +9,7 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 - All data fetching is server-side (server components + `createServiceClient()`)
 - Filters are URL searchParams — no client state for filtering/pagination
 - Server actions in `lib/actions.ts` always end with `logAudit()` + `revalidatePath()`
-- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, LoginPage, and `/users/new` page
+- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
 - shadcn UI components live in `components/ui/` — installed via `npx shadcn@latest add`, never hand-written
 - `lib/utils.ts` (`cn`) is hand-written; everything else in `lib/` is hand-written too
 - `.returns<T>()` on Supabase query builders must come LAST — placing it before filter methods (`.eq`, `.ilike`, etc.) strips them from the type and causes build errors
@@ -31,6 +31,10 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 | `grantAdminRole(userId, role)` | Upserts `admin_users` row |
 | `revokeAdminRole(userId)` | Deletes from `admin_users` |
 | `resolveReport(reportId, action, notes)` | Updates report status; auto-bans if action = `user_banned` |
+| `updateListing(listingId, data)` | Updates title, description, status, pay, role_type, boosted_until |
+| `createListing(data)` | Inserts a new `job_listings` row; `client_id` must be a `client_profiles.id` |
+| `updateCoachProfile(userId, data)` | Updates `coach_profiles` fields: title, bio, specialties, rates, experience_band |
+| `updateClientProfile(userId, data)` | Updates `client_profiles` fields: company_name, company_type, bio, website, team_size_band |
 | `removeListing(listingId)` | Sets `job_listings.status = 'removed'` |
 | `markReportsAsReviewing(ids[])` | Bulk status update |
 | `logAudit(action, targetType, targetId, metadata?)` | Inserts `admin_audit_log` row — called at the end of every mutating action |
