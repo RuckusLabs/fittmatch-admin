@@ -3,10 +3,14 @@ import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { BanPanel } from '@/components/BanPanel'
 import { GrantAdminPanel } from '@/components/GrantAdminPanel'
+import { ChangeRolePanel } from '@/components/ChangeRolePanel'
+import { DeleteUserPanel } from '@/components/DeleteUserPanel'
+import { MatchesPanel } from '@/components/MatchesPanel'
+import { PhotoGallery } from '@/components/PhotoGallery'
 import { ReportBadge } from '@/components/ReportBadge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Pencil } from 'lucide-react'
@@ -23,11 +27,12 @@ export default async function UserDetailPage({
     { data: profile },
     { data: subscription },
     { count: swipesGiven },
-    { count: matches },
     { count: messagesSent },
     { data: reports },
     { data: auditLog },
     { data: adminUser },
+    { data: authUser },
+    { data: matches },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -45,10 +50,6 @@ export default async function UserDetailPage({
       .from('swipes')
       .select('id', { count: 'exact', head: true })
       .eq('swiper_id', id),
-    supabase
-      .from('matches')
-      .select('id', { count: 'exact', head: true })
-      .or(`client_id.eq.${id},coach_id.eq.${id}`),
     supabase
       .from('messages')
       .select('id', { count: 'exact', head: true })
@@ -74,12 +75,26 @@ export default async function UserDetailPage({
       .select('user_id, role')
       .eq('user_id', id)
       .maybeSingle(),
+    supabase.auth.admin.getUserById(id),
+    supabase
+      .from('matches')
+      .select(
+        'id, status, created_at, last_message_at, last_message_preview, client_unread_count, coach_unread_count, coach:coach_profiles(id, title, profiles(full_name)), client:client_profiles(id, company_name, profiles(full_name))'
+      )
+      .or(`coach_id.eq.${id},client_id.eq.${id}`)
+      .order('created_at', { ascending: false })
+      .limit(50),
   ])
 
   if (!profile) notFound()
 
   const coachProfile = (profile as any).coach_profiles
   const clientProfile = (profile as any).client_profiles
+  // authUser is already the `data` field from getUserById: { user: User | null }
+  const authData = (authUser as any)?.user ?? null
+
+  const coachPhotos = coachProfile?.photos as Array<{ url: string; caption: string }> | null
+  const clientPhotos = clientProfile?.photos as Array<{ url: string; caption: string }> | null
 
   function getInitials(name: string | null) {
     if (!name) return '?'
@@ -91,6 +106,8 @@ export default async function UserDetailPage({
       .toUpperCase()
   }
 
+  const primaryPhotoUrl: string | null = coachProfile?.photo_url ?? clientProfile?.logo_url ?? null
+
   return (
     <div className="max-w-4xl space-y-6">
       {/* Profile header */}
@@ -98,6 +115,7 @@ export default async function UserDetailPage({
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
             <Avatar className="h-16 w-16">
+              {primaryPhotoUrl && <AvatarImage src={primaryPhotoUrl} alt={profile.full_name ?? ''} />}
               <AvatarFallback className="text-lg">
                 {getInitials(profile.full_name)}
               </AvatarFallback>
@@ -154,7 +172,7 @@ export default async function UserDetailPage({
               <p className="text-xs text-muted-foreground">Swipes given</p>
             </div>
             <div>
-              <p className="text-2xl font-bold">{matches ?? 0}</p>
+              <p className="text-2xl font-bold">{matches?.length ?? 0}</p>
               <p className="text-xs text-muted-foreground">Matches</p>
             </div>
             <div>
@@ -194,6 +212,12 @@ export default async function UserDetailPage({
                 {coachProfile.specialties.join(', ')}
               </p>
             )}
+            {coachProfile.cf_video_uid && (
+              <p className="text-muted-foreground">
+                Has profile video (CF UID: {coachProfile.cf_video_uid})
+              </p>
+            )}
+            <PhotoGallery photos={coachPhotos} primaryUrl={coachProfile.photo_url} primaryLabel="Profile photo" />
           </CardContent>
         </Card>
       )}
@@ -234,9 +258,53 @@ export default async function UserDetailPage({
                 </a>
               </p>
             )}
+            <PhotoGallery photos={clientPhotos} primaryUrl={clientProfile.logo_url} primaryLabel="Company logo" />
           </CardContent>
         </Card>
       )}
+
+      {/* Login & Auth Info */}
+      {authData && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Login & Auth Info</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm space-y-1">
+            <p>
+              <span className="font-medium">Last sign-in:</span>{' '}
+              {authData.last_sign_in_at
+                ? new Date(authData.last_sign_in_at).toLocaleString()
+                : '—'}
+            </p>
+            <p>
+              <span className="font-medium">Email confirmed:</span>{' '}
+              {authData.email_confirmed_at
+                ? new Date(authData.email_confirmed_at).toLocaleString()
+                : 'Not confirmed'}
+            </p>
+            <p>
+              <span className="font-medium">Auth account created:</span>{' '}
+              {authData.created_at
+                ? new Date(authData.created_at).toLocaleString()
+                : '—'}
+            </p>
+            {profile.signup_device_fingerprint && (
+              <p>
+                <span className="font-medium">Device fingerprint:</span>{' '}
+                <span className="font-mono text-xs">{profile.signup_device_fingerprint}</span>
+              </p>
+            )}
+            {profile.signup_user_agent && (
+              <p className="text-xs text-muted-foreground break-all">
+                <span className="font-medium not-italic">User-agent:</span> {profile.signup_user_agent}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Matches */}
+      <MatchesPanel matches={(matches ?? []) as any} userId={id} />
 
       <div className="grid grid-cols-2 gap-6">
         {/* Reports against this user */}
@@ -276,13 +344,14 @@ export default async function UserDetailPage({
         />
       </div>
 
-      {/* Admin access panel */}
-      <div className="max-w-sm">
+      {/* Admin access + Change role */}
+      <div className="grid grid-cols-2 gap-6">
         <GrantAdminPanel
           userId={id}
           isAdmin={!!adminUser}
           adminRole={(adminUser as any)?.role ?? null}
         />
+        <ChangeRolePanel userId={id} currentRole={profile.role} />
       </div>
 
       {/* Audit log */}
@@ -315,6 +384,9 @@ export default async function UserDetailPage({
           </CardContent>
         </Card>
       )}
+
+      {/* Danger zone */}
+      <DeleteUserPanel userId={id} email={profile.email} />
     </div>
   )
 }

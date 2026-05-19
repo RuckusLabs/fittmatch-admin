@@ -10,7 +10,7 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 - Filters are URL searchParams — no client state for filtering/pagination
 - Pagination pattern: `{ count: 'exact' }` in `.select()`, `.range(offset, offset + PAGE_SIZE - 1)` (must come before `.returns<T>()`), `?page=` searchParam, and a `buildUrl(newPage)` helper that preserves all other active searchParams. PAGE_SIZE = 50 across all paginated pages (users, listings, audit-log).
 - Server actions in `lib/actions.ts` always end with `logAudit()` + `revalidatePath()`
-- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
+- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, ChangeRolePanel, DeleteUserPanel, MatchesPanel, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
 - shadcn UI components live in `components/ui/` — installed via `npx shadcn@latest add`, never hand-written
 - `lib/utils.ts` (`cn`) is hand-written; everything else in `lib/` is hand-written too
 - `.returns<T>()` on Supabase query builders must come LAST — placing it before filter methods (`.eq`, `.ilike`, etc.) strips them from the type and causes build errors
@@ -38,6 +38,9 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 | `updateClientProfile(userId, data)` | Updates `client_profiles` fields: company_name, company_type, bio, website, team_size_band |
 | `removeListing(listingId)` | Sets `job_listings.status = 'removed'` |
 | `markReportsAsReviewing(ids[])` | Bulk status update |
+| `changeUserRole(userId, newRole)` | Flips `profiles.role`; upserts missing coach/client profile row (`ignoreDuplicates: true`); logs audit |
+| `deleteUser(userId, email)` | Logs audit first, then calls `auth.admin.deleteUser` — cascades to profiles, matches, messages |
+| `deleteMatch(matchId, userId)` | Deletes match row (cascade removes messages); logs audit |
 | `logAudit(action, targetType, targetId, metadata?)` | Inserts `admin_audit_log` row — called at the end of every mutating action |
 
 ## Supabase schema notes (from mobile repo types)
@@ -48,6 +51,8 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 - `job_listings.client_id` → `client_profiles.id` (not `profiles.id`)
 - `admin_audit_log.admin_id` → `profiles.id`
 - `coach_profiles` and `client_profiles` only require `id` in their Insert types; all other fields are optional
+- `coach_profiles.photos` and `client_profiles.photos` are JSONB arrays (`[{ url: string, caption: string }]`) added by the mobile repo — not yet in `types/database.ts`, cast via `(row as any).photos`
+- `supabase.auth.admin.getUserById(id)` returns `{ data: { user: User | null }, error }` — destructure as `{ data: authUser }` then access `authUser?.user`
 
 ## Environment variables
 

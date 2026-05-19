@@ -335,6 +335,72 @@ export async function revokeAdminRole(
   return { error: null }
 }
 
+export async function changeUserRole(
+  userId: string,
+  newRole: 'coach' | 'client'
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { data: profile } = await serviceClient
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+
+  const oldRole = profile?.role
+
+  const { error } = await serviceClient
+    .from('profiles')
+    .update({ role: newRole })
+    .eq('id', userId)
+
+  if (error) return { error: error.message }
+
+  if (newRole === 'coach') {
+    await serviceClient.from('coach_profiles').upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true })
+  } else {
+    await serviceClient.from('client_profiles').upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true })
+  }
+
+  await logAudit('change_user_role', 'user', userId, { from: oldRole, to: newRole })
+  revalidatePath(`/users/${userId}`)
+  revalidatePath('/users')
+  return { error: null }
+}
+
+export async function deleteUser(
+  userId: string,
+  email: string
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  await logAudit('delete_user', 'user', userId, { email })
+
+  const { error } = await serviceClient.auth.admin.deleteUser(userId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/users')
+  return { error: null }
+}
+
+export async function deleteMatch(
+  matchId: string,
+  userId: string
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('matches')
+    .delete()
+    .eq('id', matchId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('delete_match', 'match', matchId, { user_id: userId })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
 export async function markReportsAsReviewing(
   reportIds: string[]
 ): Promise<{ error: string | null }> {
