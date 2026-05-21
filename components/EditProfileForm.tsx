@@ -9,10 +9,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 type CoachData = {
   title: string | null
   bio: string | null
-  hourly_rate_min: number | null
-  hourly_rate_max: number | null
   experience_band: string | null
   specialties: string[] | null
+  certs: string[] | null
+  open_to_offers: boolean | null
 }
 
 type ClientData = {
@@ -48,16 +48,18 @@ export function EditProfileForm(props: Props) {
         ? specialtiesRaw.split(',').map((s) => s.trim()).filter(Boolean)
         : null
 
-      const rateMinRaw = fd.get('hourly_rate_min') as string
-      const rateMaxRaw = fd.get('hourly_rate_max') as string
+      const certsRaw = (fd.get('certs') as string) ?? ''
+      const certs = certsRaw
+        ? certsRaw.split(',').map((s) => s.trim()).filter(Boolean)
+        : null
 
       result = await updateCoachProfile(props.userId, {
         title: (fd.get('title') as string) || null,
         bio: (fd.get('bio') as string) || null,
-        hourly_rate_min: rateMinRaw ? parseFloat(rateMinRaw) : null,
-        hourly_rate_max: rateMaxRaw ? parseFloat(rateMaxRaw) : null,
         experience_band: (fd.get('experience_band') as string) || null,
         specialties,
+        certs,
+        open_to_offers: fd.get('open_to_offers') === 'on',
       })
     } else {
       result = await updateClientProfile(props.userId, {
@@ -131,6 +133,20 @@ export function EditProfileForm(props: Props) {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-sm font-medium" htmlFor="certs">
+                  Certifications{' '}
+                  <span className="text-muted-foreground font-normal">(comma-separated)</span>
+                </label>
+                <input
+                  id="certs"
+                  name="certs"
+                  defaultValue={(props.data.certs ?? []).join(', ')}
+                  placeholder="e.g. NASM-CPT, ACE, CSCS"
+                  className={inputClass}
+                />
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium" htmlFor="experience_band">
                   Experience Level
                 </label>
@@ -148,45 +164,19 @@ export function EditProfileForm(props: Props) {
                   <option value="expert">Expert (12+ yrs)</option>
                 </select>
               </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Rates</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium" htmlFor="hourly_rate_min">
-                    Min rate ($/hr)
-                  </label>
-                  <input
-                    id="hourly_rate_min"
-                    name="hourly_rate_min"
-                    type="number"
-                    min={0}
-                    step={1}
-                    defaultValue={props.data.hourly_rate_min ?? ''}
-                    placeholder="0"
-                    className={inputClass}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium" htmlFor="hourly_rate_max">
-                    Max rate ($/hr)
-                  </label>
-                  <input
-                    id="hourly_rate_max"
-                    name="hourly_rate_max"
-                    type="number"
-                    min={0}
-                    step={1}
-                    defaultValue={props.data.hourly_rate_max ?? ''}
-                    placeholder="0"
-                    className={inputClass}
-                  />
-                </div>
+              <div className="flex items-center gap-3">
+                <input
+                  id="open_to_offers"
+                  name="open_to_offers"
+                  type="checkbox"
+                  defaultChecked={props.data.open_to_offers ?? true}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <label className="text-sm font-medium" htmlFor="open_to_offers">
+                  Open to offers{' '}
+                  <span className="text-muted-foreground font-normal">(visible in client deck)</span>
+                </label>
               </div>
             </CardContent>
           </Card>

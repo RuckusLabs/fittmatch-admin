@@ -10,7 +10,7 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 - Filters are URL searchParams — no client state for filtering/pagination
 - Pagination pattern: `{ count: 'exact' }` in `.select()`, `.range(offset, offset + PAGE_SIZE - 1)` (must come before `.returns<T>()`), `?page=` searchParam, and a `buildUrl(newPage)` helper that preserves all other active searchParams. PAGE_SIZE = 50 across all paginated pages (users, listings, audit-log).
 - Server actions in `lib/actions.ts` always end with `logAudit()` + `revalidatePath()`
-- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, ChangeRolePanel, DeleteUserPanel, MatchesPanel, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
+- `'use client'` only where necessary: Sidebar (usePathname), Header (usePathname + signout), ResolutionPanel, BanPanel, GrantAdminPanel, ChangeRolePanel, DeleteUserPanel, MatchesPanel, BlocksPanel, PhotoGallery, ReasonFilter, SetProfileCompleteButton, EditListingForm, CreateListingForm, EditProfileForm, LoginPage, and `/users/new` page
 - shadcn UI components live in `components/ui/` — installed via `npx shadcn@latest add`, never hand-written
 - `lib/utils.ts` (`cn`) is hand-written; everything else in `lib/` is hand-written too
 - `.returns<T>()` on Supabase query builders must come LAST — placing it before filter methods (`.eq`, `.ilike`, etc.) strips them from the type and causes build errors
@@ -34,13 +34,16 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 | `resolveReport(reportId, action, notes)` | Updates report status; auto-bans if action = `user_banned` |
 | `updateListing(listingId, data)` | Updates title, description, status, pay, role_type, boosted_until |
 | `createListing(data)` | Inserts a new `job_listings` row; `client_id` must be a `client_profiles.id` |
-| `updateCoachProfile(userId, data)` | Updates `coach_profiles` fields: title, bio, specialties, rates, experience_band |
+| `updateCoachProfile(userId, data)` | Updates `coach_profiles` fields: title, bio, specialties, certs, experience_band; also writes `open_to_offers` to `profiles` if provided |
 | `updateClientProfile(userId, data)` | Updates `client_profiles` fields: company_name, company_type, bio, website, team_size_band |
 | `removeListing(listingId)` | Sets `job_listings.status = 'removed'` |
 | `markReportsAsReviewing(ids[])` | Bulk status update |
 | `changeUserRole(userId, newRole)` | Flips `profiles.role`; upserts missing coach/client profile row (`ignoreDuplicates: true`); logs audit |
 | `deleteUser(userId, email)` | Logs audit first, then calls `auth.admin.deleteUser` — cascades to profiles, matches, messages |
 | `deleteMatch(matchId, userId)` | Deletes match row (cascade removes messages); logs audit |
+| `restoreMatch(matchId)` | Sets `matches.status = null` to restore an unmatched/blocked match; logs audit as `restore_match` |
+| `removeBlock(blockerId, blockedId)` | Deletes row from `blocks`; logs audit as `remove_block` |
+| `setProfileComplete(userId, role, value)` | Updates `is_complete` on `coach_profiles` or `client_profiles`; logs audit as `update_profile` |
 | `logAudit(action, targetType, targetId, metadata?)` | Inserts `admin_audit_log` row — called at the end of every mutating action |
 
 ## Supabase schema notes (from mobile repo types)
@@ -52,6 +55,11 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 - `admin_audit_log.admin_id` → `profiles.id`
 - `coach_profiles` and `client_profiles` only require `id` in their Insert types; all other fields are optional
 - `coach_profiles.photos` and `client_profiles.photos` are JSONB arrays (`[{ url: string, caption: string }]`) added by the mobile repo — not yet in `types/database.ts`, cast via `(row as any).photos`
+- `coach_profiles.certs` is a `text[]` column — cast via `(row as any).certs`
+- `coach_profiles.is_complete` and `client_profiles.is_complete` are booleans — cast via `(row as any).is_complete`; not in generated types so `.update({ is_complete: value } as any)` is required
+- `profiles.open_to_offers` is a boolean (default `true`) — write it via the `profiles` table, not `coach_profiles`
+- `blocks` table: `blocker_id`, `blocked_id`, `created_at` — join to profiles with `!blocker_id` / `!blocked_id` hint syntax in Supabase select
+- `matches.status` is now `'unmatched'` or `'blocked'` when users unmatch/block in-app; `null` means active
 - `supabase.auth.admin.getUserById(id)` returns `{ data: { user: User | null }, error }` — destructure as `{ data: authUser }` then access `authUser?.user`
 
 ## Environment variables

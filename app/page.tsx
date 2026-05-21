@@ -26,6 +26,8 @@ export default async function DashboardPage() {
     { count: newMatches },
     { data: recentReports },
     { data: signupRows },
+    { count: activeBlocks },
+    { count: disputedMatches },
   ] = await Promise.all([
     supabase
       .from('reports')
@@ -53,6 +55,14 @@ export default async function DashboardPage() {
       .from('profiles')
       .select('created_at')
       .gte('created_at', sevenDaysAgo),
+    supabase
+      .from('blocks')
+      .select('*', { count: 'exact', head: true }),
+    supabase
+      .from('matches')
+      .select('*', { count: 'exact', head: true })
+      .in('status', ['unmatched', 'blocked'])
+      .gte('updated_at', sevenDaysAgo),
   ])
 
   // Build sparkline data (last 7 days)
@@ -77,10 +87,11 @@ export default async function DashboardPage() {
         <StatCard title="Open Reports" value={openReports ?? 0} />
         <StatCard title="Total Users" value={totalUsers ?? 0} />
         <StatCard title="Active Subscriptions" value={activeSubs ?? 0} />
-        <StatCard
-          title="New Matches (7d)"
-          value={newMatches ?? 0}
-        />
+        <StatCard title="New Matches (7d)" value={newMatches ?? 0} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <StatCard title="Active Blocks" value={activeBlocks ?? 0} />
+        <StatCard title="Disputes (7d)" value={disputedMatches ?? 0} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

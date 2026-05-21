@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { ReportBadge } from '@/components/ReportBadge'
+import { ReasonFilter } from '@/components/ReasonFilter'
 import { Button } from '@/components/ui/button'
 import { markReportsAsReviewing } from '@/lib/actions'
 import { cn } from '@/lib/utils'
@@ -22,10 +23,11 @@ const STATUS_TABS = ['all', 'open', 'reviewing', 'resolved', 'dismissed']
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; reason?: string }>
 }) {
-  const { status } = await searchParams
+  const { status, reason } = await searchParams
   const currentStatus = status ?? 'all'
+  const currentReason = reason ?? ''
   const supabase = createServiceClient()
 
   let query = supabase
@@ -37,6 +39,10 @@ export default async function ReportsPage({
 
   if (currentStatus !== 'all') {
     query = query.eq('status', currentStatus)
+  }
+
+  if (currentReason) {
+    query = query.eq('reason', currentReason)
   }
 
   const { data: reports } = await query.returns<ReportRow[]>()
@@ -55,21 +61,24 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 border-b pb-4">
-        {STATUS_TABS.map((tab) => (
-          <Link
-            key={tab}
-            href={`/reports?status=${tab}`}
-            className={cn(
-              'px-3 py-1.5 text-sm rounded-md font-medium transition-colors capitalize',
-              currentStatus === tab
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:text-foreground hover:bg-gray-100'
-            )}
-          >
-            {tab}
-          </Link>
-        ))}
+      <div className="flex items-center justify-between border-b pb-4">
+        <div className="flex items-center gap-2">
+          {STATUS_TABS.map((tab) => (
+            <Link
+              key={tab}
+              href={`/reports?status=${tab}${currentReason ? `&reason=${encodeURIComponent(currentReason)}` : ''}`}
+              className={cn(
+                'px-3 py-1.5 text-sm rounded-md font-medium transition-colors capitalize',
+                currentStatus === tab
+                  ? 'bg-primary text-primary-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-gray-100'
+              )}
+            >
+              {tab}
+            </Link>
+          ))}
+        </div>
+        <ReasonFilter />
       </div>
 
       <form action={bulkMarkReviewing}>

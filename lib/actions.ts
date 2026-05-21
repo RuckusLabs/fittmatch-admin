@@ -224,22 +224,33 @@ export async function updateCoachProfile(
   data: {
     title?: string | null
     bio?: string | null
-    hourly_rate_min?: number | null
-    hourly_rate_max?: number | null
     experience_band?: string | null
     specialties?: string[] | null
+    certs?: string[] | null
+    open_to_offers?: boolean
   }
 ): Promise<{ error: string | null }> {
   const serviceClient = createServiceClient()
 
+  const { open_to_offers, ...coachData } = data
+
   const { error } = await serviceClient
     .from('coach_profiles')
-    .update(data)
+    .update(coachData)
     .eq('id', userId)
 
   if (error) return { error: error.message }
 
-  await logAudit('update_coach_profile', 'user', userId, data as Record<string, unknown>)
+  if (open_to_offers !== undefined) {
+    const { error: profileError } = await serviceClient
+      .from('profiles')
+      .update({ open_to_offers })
+      .eq('id', userId)
+    if (profileError) return { error: profileError.message }
+    await logAudit('update_profile', 'user', userId, { field: 'open_to_offers', to: open_to_offers })
+  }
+
+  await logAudit('update_coach_profile', 'user', userId, coachData as Record<string, unknown>)
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }
@@ -419,5 +430,61 @@ export async function markReportsAsReviewing(
     ids: reportIds,
   })
   revalidatePath('/reports')
+  return { error: null }
+}
+
+export async function restoreMatch(
+  matchId: string
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('matches')
+    .update({ status: null })
+    .eq('id', matchId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('restore_match', 'match', matchId)
+  revalidatePath('/', 'layout')
+  return { error: null }
+}
+
+export async function removeBlock(
+  blockerId: string,
+  blockedId: string
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('blocks')
+    .delete()
+    .eq('blocker_id', blockerId)
+    .eq('blocked_id', blockedId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('remove_block', 'user', blockerId, { blocked_id: blockedId })
+  revalidatePath('/', 'layout')
+  return { error: null }
+}
+
+export async function setProfileComplete(
+  userId: string,
+  role: 'coach' | 'client',
+  value: boolean
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+  const table = role === 'coach' ? 'coach_profiles' : 'client_profiles'
+
+  const { error } = await serviceClient
+    .from(table)
+    .update({ is_complete: value } as any)
+    .eq('id', userId)
+
+  if (error) return { error: error.message }
+
+  await logAudit('update_profile', 'user', userId, { field: 'is_complete', to: value })
+  revalidatePath(`/users/${userId}`)
   return { error: null }
 }

@@ -6,8 +6,10 @@ import { GrantAdminPanel } from '@/components/GrantAdminPanel'
 import { ChangeRolePanel } from '@/components/ChangeRolePanel'
 import { DeleteUserPanel } from '@/components/DeleteUserPanel'
 import { MatchesPanel } from '@/components/MatchesPanel'
+import { BlocksPanel } from '@/components/BlocksPanel'
 import { PhotoGallery } from '@/components/PhotoGallery'
 import { ReportBadge } from '@/components/ReportBadge'
+import { SetProfileCompleteButton } from '@/components/SetProfileCompleteButton'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -33,6 +35,8 @@ export default async function UserDetailPage({
     { data: adminUser },
     { data: authUser },
     { data: matches },
+    { data: blocksGiven },
+    { data: blocksReceived },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -84,6 +88,14 @@ export default async function UserDetailPage({
       .or(`coach_id.eq.${id},client_id.eq.${id}`)
       .order('created_at', { ascending: false })
       .limit(50),
+    supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id, created_at, blocked:profiles!blocked_id(id, full_name)')
+      .eq('blocker_id', id),
+    supabase
+      .from('blocks')
+      .select('blocker_id, blocked_id, created_at, blocker:profiles!blocker_id(id, full_name)')
+      .eq('blocked_id', id),
   ])
 
   if (!profile) notFound()
@@ -136,6 +148,11 @@ export default async function UserDetailPage({
                     <Badge className="capitalize bg-green-600">
                       {subscription.tier ?? 'Pro'}
                     </Badge>
+                  )}
+                  {profile.role === 'coach' && (
+                    (profile as any).open_to_offers !== false
+                      ? <Badge variant="outline" className="text-green-600 border-green-300">✓ Open to offers</Badge>
+                      : <Badge variant="outline" className="text-amber-600 border-amber-300">✗ Hidden from search</Badge>
                   )}
                 </div>
                 <Button asChild variant="outline" size="sm">
@@ -200,16 +217,16 @@ export default async function UserDetailPage({
                 <span className="font-medium">Bio:</span> {coachProfile.bio}
               </p>
             )}
-            {(coachProfile.hourly_rate_min || coachProfile.hourly_rate_max) && (
-              <p>
-                <span className="font-medium">Rate:</span>{' '}
-                ${coachProfile.hourly_rate_min}–${coachProfile.hourly_rate_max}/hr
-              </p>
-            )}
             {coachProfile.specialties?.length > 0 && (
               <p>
                 <span className="font-medium">Specialties:</span>{' '}
                 {coachProfile.specialties.join(', ')}
+              </p>
+            )}
+            {(coachProfile as any).certs?.length > 0 && (
+              <p>
+                <span className="font-medium">Certifications:</span>{' '}
+                {(coachProfile as any).certs.join(', ')}
               </p>
             )}
             {coachProfile.cf_video_uid && (
@@ -217,6 +234,11 @@ export default async function UserDetailPage({
                 Has profile video (CF UID: {coachProfile.cf_video_uid})
               </p>
             )}
+            <SetProfileCompleteButton
+              userId={id}
+              role="coach"
+              isComplete={(coachProfile as any).is_complete ?? false}
+            />
             <PhotoGallery photos={coachPhotos} primaryUrl={coachProfile.photo_url} primaryLabel="Profile photo" />
           </CardContent>
         </Card>
@@ -258,6 +280,11 @@ export default async function UserDetailPage({
                 </a>
               </p>
             )}
+            <SetProfileCompleteButton
+              userId={id}
+              role="client"
+              isComplete={(clientProfile as any).is_complete ?? false}
+            />
             <PhotoGallery photos={clientPhotos} primaryUrl={clientProfile.logo_url} primaryLabel="Company logo" />
           </CardContent>
         </Card>
@@ -305,6 +332,12 @@ export default async function UserDetailPage({
 
       {/* Matches */}
       <MatchesPanel matches={(matches ?? []) as any} userId={id} />
+
+      {/* Blocks */}
+      <BlocksPanel
+        blocksGiven={(blocksGiven ?? []) as any}
+        blocksReceived={(blocksReceived ?? []) as any}
+      />
 
       <div className="grid grid-cols-2 gap-6">
         {/* Reports against this user */}

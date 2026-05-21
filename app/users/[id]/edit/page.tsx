@@ -51,10 +51,10 @@ export default async function EditUserProfilePage({
           data={{
             title: coachProfile?.title ?? null,
             bio: coachProfile?.bio ?? null,
-            hourly_rate_min: coachProfile?.hourly_rate_min ?? null,
-            hourly_rate_max: coachProfile?.hourly_rate_max ?? null,
             experience_band: coachProfile?.experience_band ?? null,
             specialties: coachProfile?.specialties ?? null,
+            certs: (coachProfile as any)?.certs ?? null,
+            open_to_offers: (profile as any).open_to_offers ?? true,
           }}
         />
       ) : (

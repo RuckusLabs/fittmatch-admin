@@ -5,7 +5,8 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { deleteMatch } from '@/lib/actions'
+import { deleteMatch, restoreMatch } from '@/lib/actions'
+import { cn } from '@/lib/utils'
 
 interface Match {
   id: string
@@ -22,10 +23,18 @@ interface MatchesPanelProps {
   userId: string
 }
 
+type FilterTab = 'all' | 'active' | 'unmatched' | 'blocked'
+
 function statusVariant(status: string | null): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'accepted') return 'default'
-  if (status === 'pending') return 'secondary'
-  return 'outline'
+  if (status === 'blocked') return 'destructive'
+  if (status === 'unmatched') return 'secondary'
+  return 'default'
+}
+
+function statusLabel(status: string | null) {
+  if (status === 'blocked') return 'Blocked'
+  if (status === 'unmatched') return 'Unmatched'
+  return 'Active'
 }
 
 function MatchRow({ match, userId }: { match: Match; userId: string }) {
@@ -35,6 +44,7 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
 
   const coachName = match.coach?.profiles?.full_name ?? match.coach?.title ?? 'Unknown coach'
   const clientName = match.client?.profiles?.full_name ?? match.client?.company_name ?? 'Unknown client'
+  const isRestorable = match.status === 'unmatched' || match.status === 'blocked'
 
   function handleReset() {
     setError(null)
@@ -42,6 +52,14 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
       const result = await deleteMatch(match.id, userId)
       if (result.error) setError(result.error)
       setConfirming(false)
+    })
+  }
+
+  function handleRestore() {
+    setError(null)
+    startTransition(async () => {
+      const result = await restoreMatch(match.id)
+      if (result.error) setError(result.error)
     })
   }
 
@@ -61,8 +79,8 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Badge variant={statusVariant(match.status)} className="capitalize">
-            {match.status ?? 'unknown'}
+          <Badge variant={statusVariant(match.status)}>
+            {statusLabel(match.status)}
           </Badge>
           <Link
             href={`/users/${userId}/messages?matchId=${match.id}`}
@@ -72,27 +90,55 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
           </Link>
         </div>
       </div>
-      {confirming ? (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Delete this match and all its messages?</span>
-          <Button size="sm" variant="destructive" onClick={handleReset} disabled={isPending} className="h-6 text-xs px-2">
-            {isPending ? 'Deleting…' : 'Confirm'}
+      <div className="flex items-center gap-2">
+        {isRestorable && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRestore}
+            disabled={isPending}
+            className="h-6 text-xs px-2 text-green-700 border-green-300 hover:bg-green-50"
+          >
+            {isPending ? 'Restoring…' : 'Restore'}
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setConfirming(false)} disabled={isPending} className="h-6 text-xs px-2">
-            Cancel
+        )}
+        {confirming ? (
+          <>
+            <span className="text-xs text-muted-foreground">Delete this match and all its messages?</span>
+            <Button size="sm" variant="destructive" onClick={handleReset} disabled={isPending} className="h-6 text-xs px-2">
+              {isPending ? 'Deleting…' : 'Confirm'}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setConfirming(false)} disabled={isPending} className="h-6 text-xs px-2">
+              Cancel
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" variant="ghost" onClick={() => setConfirming(true)} className="h-6 text-xs px-2 text-destructive hover:text-destructive">
+            Reset match
           </Button>
-        </div>
-      ) : (
-        <Button size="sm" variant="ghost" onClick={() => setConfirming(true)} className="h-6 text-xs px-2 text-destructive hover:text-destructive">
-          Reset match
-        </Button>
-      )}
+        )}
+      </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }
 
+const FILTER_TABS: { key: FilterTab; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'active', label: 'Active' },
+  { key: 'unmatched', label: 'Unmatched' },
+  { key: 'blocked', label: 'Blocked' },
+]
+
 export function MatchesPanel({ matches, userId }: MatchesPanelProps) {
+  const [filter, setFilter] = useState<FilterTab>('all')
+
+  const filtered = matches.filter((m) => {
+    if (filter === 'all') return true
+    if (filter === 'active') return m.status !== 'unmatched' && m.status !== 'blocked'
+    return m.status === filter
+  })
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -107,11 +153,33 @@ export function MatchesPanel({ matches, userId }: MatchesPanelProps) {
         {matches.length === 0 ? (
           <p className="text-sm text-muted-foreground">No matches</p>
         ) : (
-          <div>
-            {matches.map((m) => (
-              <MatchRow key={m.id} match={m} userId={userId} />
-            ))}
-          </div>
+          <>
+            <div className="flex items-center gap-1 mb-3">
+              {FILTER_TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilter(tab.key)}
+                  className={cn(
+                    'px-2.5 py-1 text-xs rounded font-medium transition-colors',
+                    filter === tab.key
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-gray-100'
+                  )}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            {filtered.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No {filter} matches</p>
+            ) : (
+              <div>
+                {filtered.map((m) => (
+                  <MatchRow key={m.id} match={m} userId={userId} />
+                ))}
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

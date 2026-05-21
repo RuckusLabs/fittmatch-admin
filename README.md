@@ -13,8 +13,8 @@ Internal moderation and operations dashboard for the FittMatch platform.
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Dashboard — stat cards + recent reports + signup sparkline |
-| `/reports` | Reports queue with status tabs and bulk actions |
+| `/` | Dashboard — stat cards (reports, users, subs, matches, active blocks, disputes) + recent reports + signup sparkline |
+| `/reports` | Reports queue with status tabs, reason filter dropdown, and bulk actions |
 | `/reports/[id]` | Report detail + resolution panel |
 | `/users` | User search by name or email, role/status filters |
 | `/users/new` | Create a new coach or client user |
@@ -62,11 +62,14 @@ From the **Users** screen you can:
 - **Paginate** — 50 users per page via `?page=` searchParam; all active filters are preserved across page navigation
 - **Create users** — `/users/new` creates a coach or client account via `auth.admin.createUser`. For client accounts you can optionally set company name and type at creation time. The user receives a magic-link email to activate their account.
 - **View a user** — metrics (swipes, matches, messages), reports against them, subscription status, login/auth info (last sign-in, email confirmed date, device fingerprint), and profile photos
-- **Edit profile** — `/users/[id]/edit` lets you update a coach's bio, title, specialties, rates, and experience level, or a client's company name, type, bio, website, and team size
+- **Edit profile** — `/users/[id]/edit` lets you update a coach's bio, title, specialties, certifications, experience level, and open-to-offers toggle, or a client's company name, type, bio, website, and team size
 - **Ban / unban** — with a reason; logged to the audit log
 - **Change role** — switch a user between coach and client; creates the missing profile row, preserves the old one
 - **Grant / revoke admin access** — from the user detail page, choose a role (Moderator, Admin, Super Admin) and grant in one click. Revoke is equally one-click.
-- **View matches** — full match list per user with status, last message preview, and per-match "Reset" (deletes the match and its messages)
+- **View matches** — full match list per user with All/Active/Unmatched/Blocked filter tabs, status badges, and per-match **Reset** or **Restore** actions (Restore sets status back to active for dispute resolution)
+- **View blocks** — two sub-tables on the user detail page showing blocks the user has given and received; admins can remove any block
+- **Toggle profile visibility** — "Profile visible in deck" toggle on the coach/client card overrides `is_complete` directly
+- **View photos** — photo gallery with click-to-expand lightbox dialog
 - **View messages** — `/users/[id]/messages` shows all conversations across all matches in a chat-bubble view; deep-link to a specific match with `?matchId=`
 - **Delete user** — permanent account deletion via `auth.admin.deleteUser`; requires typing the user's email to confirm; cascades to profile, matches, and messages
 
