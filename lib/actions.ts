@@ -494,19 +494,23 @@ export async function giftPro(
   const now = new Date()
   const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString()
 
-  const { error } = await serviceClient
+  const { data: existing } = await serviceClient
     .from('subscriptions')
-    .upsert(
-      {
-        user_id: userId,
-        tier: 'pro',
-        status: 'active',
-        billing_period: 'gifted',
-        current_period_start: now.toISOString(),
-        current_period_end: periodEnd,
-      },
-      { onConflict: 'user_id' }
-    )
+    .select('id')
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  const payload = {
+    tier: 'pro',
+    status: 'active',
+    billing_period: 'gifted',
+    current_period_start: now.toISOString(),
+    current_period_end: periodEnd,
+  }
+
+  const { error } = existing
+    ? await serviceClient.from('subscriptions').update(payload).eq('id', existing.id)
+    : await serviceClient.from('subscriptions').insert({ user_id: userId, ...payload })
 
   if (error) return { error: error.message }
 
