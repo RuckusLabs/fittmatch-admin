@@ -503,7 +503,7 @@ export async function giftPro(
   const payload = {
     tier: 'pro',
     status: 'active',
-    billing_period: 'gifted',
+    billing_period: null,
     current_period_start: now.toISOString(),
     current_period_end: periodEnd,
   }
