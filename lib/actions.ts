@@ -469,6 +469,52 @@ export async function removeBlock(
   return { error: null }
 }
 
+export async function resetDailySwipes(userId: string): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+  const today = new Date().toISOString().slice(0, 10)
+
+  const { error } = await serviceClient
+    .from('usage_counters')
+    .delete()
+    .eq('user_id', userId)
+    .eq('date', today)
+
+  if (error) return { error: error.message }
+
+  await logAudit('reset_daily_swipes', 'user', userId, { date: today })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+export async function giftPro(
+  userId: string,
+  days: number
+): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+  const now = new Date()
+  const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString()
+
+  const { error } = await serviceClient
+    .from('subscriptions')
+    .upsert(
+      {
+        user_id: userId,
+        tier: 'pro',
+        status: 'active',
+        billing_period: 'gifted',
+        current_period_start: now.toISOString(),
+        current_period_end: periodEnd,
+      },
+      { onConflict: 'user_id' }
+    )
+
+  if (error) return { error: error.message }
+
+  await logAudit('gift_pro', 'user', userId, { days, period_end: periodEnd })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
 export async function setProfileComplete(
   userId: string,
   role: 'coach' | 'client',

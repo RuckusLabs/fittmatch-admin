@@ -10,6 +10,8 @@ import { BlocksPanel } from '@/components/BlocksPanel'
 import { PhotoGallery } from '@/components/PhotoGallery'
 import { ReportBadge } from '@/components/ReportBadge'
 import { SetProfileCompleteButton } from '@/components/SetProfileCompleteButton'
+import { ResetSwipesPanel } from '@/components/ResetSwipesPanel'
+import { GiftProPanel } from '@/components/GiftProPanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -376,6 +378,14 @@ export default async function UserDetailPage({
           bannedReason={profile.banned_reason}
         />
       </div>
+
+      {/* Client-only tools: swipe reset + Pro gift */}
+      {profile.role === 'client' && (
+        <div className="grid grid-cols-2 gap-6">
+          <ResetSwipesPanel userId={id} />
+          <GiftProPanel userId={id} />
+        </div>
+      )}
 
       {/* Admin access + Change role */}
       <div className="grid grid-cols-2 gap-6">
