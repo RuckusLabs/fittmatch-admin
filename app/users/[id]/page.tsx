@@ -383,7 +383,7 @@ export default async function UserDetailPage({
       {profile.role === 'client' && (
         <div className="grid grid-cols-2 gap-6">
           <ResetSwipesPanel userId={id} />
-          <GiftProPanel userId={id} />
+          <GiftProPanel userId={id} currentPeriodEnd={subscription?.current_period_end ?? null} />
         </div>
       )}
 
