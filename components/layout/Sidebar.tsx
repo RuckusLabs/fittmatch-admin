@@ -25,7 +25,7 @@ export function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-60 flex-shrink-0 bg-slate-900 text-white flex flex-col">
+    <aside className="w-60 flex-shrink-0 bg-slate-900 text-white hidden md:flex flex-col">
       <div className="px-6 py-5 border-b border-slate-700">
         <h1 className="font-bold text-lg tracking-tight">FittMatch</h1>
         <p className="text-xs text-slate-400 mt-0.5">Admin Console</p>

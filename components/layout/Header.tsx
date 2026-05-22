@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase-browser'
+import { MobileNav } from '@/components/layout/MobileNav'
 
 const pageTitles: Record<string, string> = {
   '/': 'Dashboard',
@@ -35,7 +36,10 @@ export function Header({ adminRole }: { adminRole: string }) {
 
   return (
     <header className="h-14 border-b bg-white flex items-center justify-between px-6 flex-shrink-0">
-      <h2 className="font-semibold text-gray-900">{title}</h2>
+      <div className="flex items-center gap-2">
+        <MobileNav />
+        <h2 className="font-semibold text-gray-900">{title}</h2>
+      </div>
       <div className="flex items-center gap-3">
         <Badge variant="secondary" className="capitalize">
           {adminRole}
