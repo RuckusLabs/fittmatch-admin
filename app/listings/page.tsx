@@ -10,6 +10,7 @@ type ListingRow = {
   id: string
   title: string
   status: string | null
+  views_count: number | null
   boosted_until: string | null
   created_at: string | null
   client: { company_name: string | null } | null
@@ -39,7 +40,7 @@ export default async function ListingsPage({
   let query = supabase
     .from('job_listings')
     .select(
-      'id, title, status, boosted_until, created_at, client:client_profiles!job_listings_client_id_fkey(company_name)',
+      'id, title, status, views_count, boosted_until, created_at, client:client_profiles!job_listings_client_id_fkey(company_name)',
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })
@@ -111,6 +112,7 @@ export default async function ListingsPage({
               <th className="text-left px-4 py-2 font-medium">Company</th>
               <th className="text-left px-4 py-2 font-medium">Title</th>
               <th className="text-left px-4 py-2 font-medium">Status</th>
+              <th className="text-left px-4 py-2 font-medium">Views</th>
               <th className="text-left px-4 py-2 font-medium">Boosted until</th>
               <th className="text-left px-4 py-2 font-medium">Created</th>
               <th className="text-left px-4 py-2 font-medium">Actions</th>
@@ -136,6 +138,9 @@ export default async function ListingsPage({
                   >
                     {listing.status ?? 'unknown'}
                   </span>
+                </td>
+                <td className="px-4 py-2.5 text-muted-foreground">
+                  {listing.views_count ?? 0}
                 </td>
                 <td className="px-4 py-2.5 text-muted-foreground">
                   {listing.boosted_until
@@ -176,7 +181,7 @@ export default async function ListingsPage({
             {!listings?.length && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   No listings found

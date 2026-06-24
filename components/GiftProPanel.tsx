@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { giftPro } from '@/lib/actions'
+import { giftPro, revokePro } from '@/lib/actions'
 
 const DURATIONS = [
   { label: '7 days', value: 7 },
@@ -13,17 +13,23 @@ const DURATIONS = [
 
 interface Props {
   userId: string
+  role: 'coach' | 'client'
   currentPeriodEnd: string | null
+  subStatus?: string | null
 }
 
-export function GiftProPanel({ userId, currentPeriodEnd }: Props) {
+export function GiftProPanel({ userId, role, currentPeriodEnd, subStatus }: Props) {
   const [selectedDays, setSelectedDays] = useState(30)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
   const [isPending, startTransition] = useTransition()
 
+  const proLabel = role === 'coach' ? 'Coach Pro' : 'Client Pro'
+  const isActive =
+    subStatus === 'active' && !!currentPeriodEnd && new Date(currentPeriodEnd) > new Date()
+
   function handleGift() {
-    if (!confirm(`Grant ${selectedDays} days of Pro to this user?`)) return
+    if (!confirm(`Grant ${selectedDays} days of ${proLabel} to this user?`)) return
     setError(null)
     setDone(false)
     startTransition(async () => {
@@ -33,36 +39,36 @@ export function GiftProPanel({ userId, currentPeriodEnd }: Props) {
     })
   }
 
+  function handleRevoke() {
+    if (!confirm(`Revoke ${proLabel} from this user now?`)) return
+    setError(null)
+    setDone(false)
+    startTransition(async () => {
+      const result = await revokePro(userId)
+      if (result.error) setError(result.error)
+      else setDone(true)
+    })
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Gift Pro Access</CardTitle>
+        <CardTitle className="text-base">Gift {proLabel}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Manually grant Pro status for a fixed period. Overwrites any existing subscription record.
+          Manually grant {proLabel} for a fixed period. Overwrites any existing subscription record.
         </p>
-        {(() => {
-          if (done) {
-            const newExpiry = new Date(Date.now() + selectedDays * 86400000)
-            return (
-              <p className="text-sm text-green-600">
-                Pro active · expires {newExpiry.toLocaleDateString()}
-              </p>
-            )
-          }
-          if (!currentPeriodEnd) {
-            return <p className="text-sm text-muted-foreground">No active Pro subscription</p>
-          }
-          const expiry = new Date(currentPeriodEnd)
-          const isActive = expiry > new Date()
-          return (
-            <p className={`text-sm ${isActive ? 'text-green-600' : 'text-destructive'}`}>
-              {isActive ? 'Pro active' : 'Pro expired'} · {isActive ? 'expires' : 'expired'}{' '}
-              {expiry.toLocaleDateString()}
-            </p>
-          )
-        })()}
+        {done ? (
+          <p className="text-sm text-green-600">Subscription updated.</p>
+        ) : !currentPeriodEnd ? (
+          <p className="text-sm text-muted-foreground">No active subscription</p>
+        ) : (
+          <p className={`text-sm ${isActive ? 'text-green-600' : 'text-destructive'}`}>
+            {isActive ? 'Pro active · expires' : 'Pro expired ·'}{' '}
+            {new Date(currentPeriodEnd).toLocaleDateString()}
+          </p>
+        )}
         <div className="flex gap-2">
           {DURATIONS.map(({ label, value }) => (
             <button
@@ -79,13 +85,19 @@ export function GiftProPanel({ userId, currentPeriodEnd }: Props) {
           ))}
         </div>
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button
-          onClick={handleGift}
-          disabled={isPending}
-          className="w-full"
-        >
-          {isPending ? 'Granting…' : `Gift ${selectedDays} Days Pro`}
+        <Button onClick={handleGift} disabled={isPending} className="w-full">
+          {isPending ? 'Working…' : `Gift ${selectedDays} Days ${proLabel}`}
         </Button>
+        {isActive && (
+          <Button
+            variant="outline"
+            onClick={handleRevoke}
+            disabled={isPending}
+            className="w-full text-destructive hover:text-destructive"
+          >
+            Revoke {proLabel}
+          </Button>
+        )}
       </CardContent>
     </Card>
   )

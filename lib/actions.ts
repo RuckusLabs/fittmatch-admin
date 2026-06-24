@@ -494,6 +494,14 @@ export async function giftPro(
   const now = new Date()
   const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString()
 
+  // Role-specific tier so Coach Pro and Client Pro are distinguishable in reporting/MRR.
+  const { data: profile } = await serviceClient
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  const tier = profile?.role === 'coach' ? 'coach_pro' : 'client_pro'
+
   const { data: existing } = await serviceClient
     .from('subscriptions')
     .select('id')
@@ -501,7 +509,7 @@ export async function giftPro(
     .maybeSingle()
 
   const payload = {
-    tier: 'pro',
+    tier,
     status: 'active',
     billing_period: null,
     current_period_start: now.toISOString(),
@@ -514,7 +522,41 @@ export async function giftPro(
 
   if (error) return { error: error.message }
 
-  await logAudit('gift_pro', 'user', userId, { days, period_end: periodEnd })
+  await logAudit('gift_pro', 'user', userId, { days, tier, period_end: periodEnd })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+export async function revokePro(userId: string): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+
+  const { error } = await serviceClient
+    .from('subscriptions')
+    .update({ status: 'expired', current_period_end: new Date().toISOString() })
+    .eq('user_id', userId)
+    .eq('status', 'active')
+
+  if (error) return { error: error.message }
+
+  await logAudit('revoke_pro', 'user', userId, {})
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+export async function resetSuperLikes(userId: string): Promise<{ error: string | null }> {
+  const serviceClient = createServiceClient()
+  const month = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
+
+  // super_like_usage isn't in the generated types yet — cast per the repo convention.
+  const { error } = await (serviceClient as any)
+    .from('super_like_usage')
+    .delete()
+    .eq('user_id', userId)
+    .eq('month', month)
+
+  if (error) return { error: error.message }
+
+  await logAudit('reset_super_likes', 'user', userId, { month })
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }

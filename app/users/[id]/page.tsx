@@ -12,6 +12,7 @@ import { ReportBadge } from '@/components/ReportBadge'
 import { SetProfileCompleteButton } from '@/components/SetProfileCompleteButton'
 import { ResetSwipesPanel } from '@/components/ResetSwipesPanel'
 import { GiftProPanel } from '@/components/GiftProPanel'
+import { SuperLikePanel } from '@/components/SuperLikePanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -39,6 +40,7 @@ export default async function UserDetailPage({
     { data: matches },
     { data: blocksGiven },
     { data: blocksReceived },
+    { data: superLikeRow },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -98,6 +100,12 @@ export default async function UserDetailPage({
       .from('blocks')
       .select('blocker_id, blocked_id, created_at, blocker:profiles!blocker_id(id, full_name)')
       .eq('blocked_id', id),
+    (supabase as any)
+      .from('super_like_usage')
+      .select('used')
+      .eq('user_id', id)
+      .eq('month', new Date().toISOString().slice(0, 7))
+      .maybeSingle(),
   ])
 
   if (!profile) notFound()
@@ -106,6 +114,7 @@ export default async function UserDetailPage({
   const clientProfile = (profile as any).client_profiles
   // authUser is already the `data` field from getUserById: { user: User | null }
   const authData = (authUser as any)?.user ?? null
+  const superLikeUsed = (superLikeRow as any)?.used ?? 0
 
   const coachPhotos = coachProfile?.photos as Array<{ url: string; caption: string }> | null
   const clientPhotos = clientProfile?.photos as Array<{ url: string; caption: string }> | null
@@ -236,6 +245,13 @@ export default async function UserDetailPage({
                 Has profile video (CF UID: {coachProfile.cf_video_uid})
               </p>
             )}
+            {(coachProfile as any).boosted_until &&
+              new Date((coachProfile as any).boosted_until) > new Date() && (
+                <p className="text-amber-600">
+                  <span className="font-medium">⚡ Boosted until:</span>{' '}
+                  {new Date((coachProfile as any).boosted_until).toLocaleString()}
+                </p>
+              )}
             <SetProfileCompleteButton
               userId={id}
               role="coach"
@@ -379,11 +395,29 @@ export default async function UserDetailPage({
         />
       </div>
 
-      {/* Client-only tools: swipe reset + Pro gift */}
+      {/* Client tools: swipe reset + Client Pro gift */}
       {profile.role === 'client' && (
         <div className="grid grid-cols-2 gap-6">
           <ResetSwipesPanel userId={id} />
-          <GiftProPanel userId={id} currentPeriodEnd={subscription?.current_period_end ?? null} />
+          <GiftProPanel
+            userId={id}
+            role="client"
+            currentPeriodEnd={subscription?.current_period_end ?? null}
+            subStatus={subscription?.status ?? null}
+          />
+        </div>
+      )}
+
+      {/* Coach tools: super-like reset + Coach Pro gift */}
+      {profile.role === 'coach' && (
+        <div className="grid grid-cols-2 gap-6">
+          <SuperLikePanel userId={id} used={superLikeUsed} />
+          <GiftProPanel
+            userId={id}
+            role="coach"
+            currentPeriodEnd={subscription?.current_period_end ?? null}
+            subStatus={subscription?.status ?? null}
+          />
         </div>
       )}
 

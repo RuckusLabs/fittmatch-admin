@@ -12,13 +12,20 @@ export default async function EditListingPage({
   const { id } = await params
   const supabase = createServiceClient()
 
-  const { data: listing } = await supabase
-    .from('job_listings')
-    .select(
-      'id, title, description, status, pay_min, pay_max, pay_negotiable, role_type, boosted_until, client:client_profiles!job_listings_client_id_fkey(company_name)'
-    )
-    .eq('id', id)
-    .single()
+  const [{ data: listing }, { count: applicantCount }] = await Promise.all([
+    supabase
+      .from('job_listings')
+      .select(
+        'id, title, description, status, pay_min, pay_max, pay_negotiable, role_type, boosted_until, views_count, client:client_profiles!job_listings_client_id_fkey(company_name)'
+      )
+      .eq('id', id)
+      .single(),
+    supabase
+      .from('swipes')
+      .select('id', { count: 'exact', head: true })
+      .eq('target_listing_id', id)
+      .eq('direction', 'right'),
+  ])
 
   if (!listing) notFound()
 
@@ -39,6 +46,11 @@ export default async function EditListingPage({
             <p className="text-sm text-muted-foreground">{client.company_name}</p>
           )}
         </div>
+      </div>
+
+      <div className="flex gap-6 text-sm text-muted-foreground border-y py-2">
+        <span>👁 {(listing as { views_count?: number | null }).views_count ?? 0} views</span>
+        <span>👤 {applicantCount ?? 0} applicants</span>
       </div>
 
       <EditListingForm listing={listing} />
