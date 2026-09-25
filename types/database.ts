@@ -394,6 +394,8 @@ export type Database = {
           created_at: string | null
           days: string[] | null
           description: string | null
+          expires_at: string | null
+          expiry_reminded_at: string | null
           geog: unknown
           id: string
           location: unknown
@@ -419,6 +421,8 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          expires_at?: string | null
+          expiry_reminded_at?: string | null
           geog?: unknown
           id?: string
           location?: unknown
@@ -444,6 +448,8 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          expires_at?: string | null
+          expiry_reminded_at?: string | null
           geog?: unknown
           id?: string
           location?: unknown
@@ -1517,6 +1523,7 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_pending_matches: { Args: never; Returns: undefined }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -1750,6 +1757,7 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      process_listing_expiry: { Args: never; Returns: undefined }
       set_application_stage: {
         Args: {
           p_coach_id: string
