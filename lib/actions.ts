@@ -724,3 +724,34 @@ export async function endCoachBoost(userId: string): Promise<{ error: string | n
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }
+
+// Certification proof review. Approval mirrors into coach_profiles.verified_certs via trigger.
+export async function reviewCert(
+  verificationId: string,
+  decision: 'approved' | 'rejected',
+  note?: string
+): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(MODERATORS)
+  const serviceClient = createServiceClient()
+
+  const { data: row, error } = await serviceClient
+    .from('cert_verifications')
+    .update({
+      status: decision,
+      review_note: decision === 'rejected' ? (note?.trim() || 'Could not verify this certificate.') : null,
+      reviewed_by: adminId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq('id', verificationId)
+    .select('coach_id, cert_name')
+    .single()
+  if (error) return { error: error.message }
+
+  await logAudit(adminId, decision === 'approved' ? 'approve_cert' : 'reject_cert', 'user', row.coach_id, {
+    cert: row.cert_name,
+    note,
+  })
+  revalidatePath('/verifications')
+  revalidatePath(`/users/${row.coach_id}`)
+  return { error: null }
+}
