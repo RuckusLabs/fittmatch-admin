@@ -123,6 +123,8 @@ export function EditListingForm({ listing }: { listing: Listing }) {
               >
                 <option value="draft">Draft</option>
                 <option value="live">Live</option>
+                <option value="paused">Paused</option>
+                <option value="closed">Closed</option>
                 <option value="removed">Removed</option>
               </select>
             </div>

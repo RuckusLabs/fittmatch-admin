@@ -3,11 +3,13 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
-const REASONS = [
-  'Inappropriate content',
-  'Spam',
-  'Fake profile',
-  'Other',
+// Must match the reports.reason CHECK constraint (the mobile app sends these values).
+const REASONS: { value: string; label: string }[] = [
+  { value: 'inappropriate', label: 'Inappropriate content' },
+  { value: 'harassment', label: 'Harassment' },
+  { value: 'fake', label: 'Fake profile' },
+  { value: 'misleading', label: 'Spam / misleading' },
+  { value: 'other', label: 'Other' },
 ]
 
 function ReasonFilterInner() {
@@ -32,7 +34,7 @@ function ReasonFilterInner() {
     >
       <option value="">All reasons</option>
       {REASONS.map((r) => (
-        <option key={r} value={r}>{r}</option>
+        <option key={r.value} value={r.value}>{r.label}</option>
       ))}
     </select>
   )

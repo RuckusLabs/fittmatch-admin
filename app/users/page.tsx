@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { UserPlus } from 'lucide-react'
+import { tierLabel } from '@/lib/labels'
 
 type UserRow = {
   id: string
@@ -42,7 +43,9 @@ export default async function UsersPage({
     .range(offset, offset + PAGE_SIZE - 1)
 
   if (q) {
-    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
+    // Strip PostgREST filter syntax so the search text can't add or break .or() clauses.
+    const safe = q.replace(/[,()*\\"]/g, ' ').trim()
+    if (safe) query = query.or(`full_name.ilike.%${safe}%,email.ilike.%${safe}%`)
   }
   if (currentRole !== 'all') {
     query = query.eq('role', currentRole)
@@ -78,7 +81,8 @@ export default async function UsersPage({
 
   function getActiveSub(subs: UserRow['subscriptions']) {
     if (!subs?.length) return null
-    return subs.find((s) => s.status === 'active') ?? subs[0]
+    // Only an active subscription earns a badge — an expired/free row means Free.
+    return subs.find((s) => s.status === 'active' && s.tier && s.tier !== 'free') ?? null
   }
 
   return (
@@ -214,7 +218,7 @@ export default async function UsersPage({
                   <td className="px-4 py-2.5">
                     {sub ? (
                       <Badge variant="secondary" className="capitalize text-xs">
-                        {sub.tier ?? 'unknown'}
+                        {tierLabel(sub.tier)}
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">Free</span>

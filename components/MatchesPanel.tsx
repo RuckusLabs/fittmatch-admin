@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { deleteMatch, restoreMatch } from '@/lib/actions'
 import { cn } from '@/lib/utils'
+import { normalizeMatchStatus, matchStatusLabel, matchStatusVariant } from '@/lib/labels'
 
 interface Match {
   id: string
@@ -23,19 +24,7 @@ interface MatchesPanelProps {
   userId: string
 }
 
-type FilterTab = 'all' | 'active' | 'unmatched' | 'blocked'
-
-function statusVariant(status: string | null): 'default' | 'secondary' | 'destructive' | 'outline' {
-  if (status === 'blocked') return 'destructive'
-  if (status === 'unmatched') return 'secondary'
-  return 'default'
-}
-
-function statusLabel(status: string | null) {
-  if (status === 'blocked') return 'Blocked'
-  if (status === 'unmatched') return 'Unmatched'
-  return 'Active'
-}
+type FilterTab = 'all' | 'active' | 'pending' | 'archived' | 'unmatched' | 'blocked'
 
 function MatchRow({ match, userId }: { match: Match; userId: string }) {
   const [confirming, setConfirming] = useState(false)
@@ -79,8 +68,8 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Badge variant={statusVariant(match.status)}>
-            {statusLabel(match.status)}
+          <Badge variant={matchStatusVariant(match.status)}>
+            {matchStatusLabel(match.status)}
           </Badge>
           <Link
             href={`/users/${userId}/messages?matchId=${match.id}`}
@@ -126,6 +115,8 @@ function MatchRow({ match, userId }: { match: Match; userId: string }) {
 const FILTER_TABS: { key: FilterTab; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'active', label: 'Active' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'archived', label: 'Archived' },
   { key: 'unmatched', label: 'Unmatched' },
   { key: 'blocked', label: 'Blocked' },
 ]
@@ -135,8 +126,7 @@ export function MatchesPanel({ matches, userId }: MatchesPanelProps) {
 
   const filtered = matches.filter((m) => {
     if (filter === 'all') return true
-    if (filter === 'active') return m.status !== 'unmatched' && m.status !== 'blocked'
-    return m.status === filter
+    return normalizeMatchStatus(m.status) === filter
   })
 
   return (
