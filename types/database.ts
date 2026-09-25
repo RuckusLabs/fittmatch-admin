@@ -168,8 +168,8 @@ export type Database = {
           id: string
           is_complete: boolean | null
           location: unknown
-          logo_emoji: string | null
           logo_url: string | null
+          photos: Json
           team_size_band: string | null
           updated_at: string | null
           views_count: number | null
@@ -183,8 +183,8 @@ export type Database = {
           id: string
           is_complete?: boolean | null
           location?: unknown
-          logo_emoji?: string | null
           logo_url?: string | null
+          photos?: Json
           team_size_band?: string | null
           updated_at?: string | null
           views_count?: number | null
@@ -198,8 +198,8 @@ export type Database = {
           id?: string
           is_complete?: boolean | null
           location?: unknown
-          logo_emoji?: string | null
           logo_url?: string | null
+          photos?: Json
           team_size_band?: string | null
           updated_at?: string | null
           views_count?: number | null
@@ -222,21 +222,39 @@ export type Database = {
           },
         ]
       }
+      coach_boost_usage: {
+        Row: {
+          date: string
+          used: number
+          user_id: string
+        }
+        Insert: {
+          date: string
+          used?: number
+          user_id: string
+        }
+        Update: {
+          date?: string
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       coach_profiles: {
         Row: {
           availability: Json | null
           bio: string | null
+          boosted_until: string | null
           certs: string[] | null
           cf_video_uid: string | null
           created_at: string | null
           experience_band: string | null
-          hourly_rate_max: number | null
-          hourly_rate_min: number | null
           id: string
           is_complete: boolean | null
           location: unknown
           other_credentials: string[] | null
           photo_url: string | null
+          photos: Json
           profile_strength_pct: number | null
           right_swipes_received_count: number | null
           specialties: string[] | null
@@ -248,17 +266,17 @@ export type Database = {
         Insert: {
           availability?: Json | null
           bio?: string | null
+          boosted_until?: string | null
           certs?: string[] | null
           cf_video_uid?: string | null
           created_at?: string | null
           experience_band?: string | null
-          hourly_rate_max?: number | null
-          hourly_rate_min?: number | null
           id: string
           is_complete?: boolean | null
           location?: unknown
           other_credentials?: string[] | null
           photo_url?: string | null
+          photos?: Json
           profile_strength_pct?: number | null
           right_swipes_received_count?: number | null
           specialties?: string[] | null
@@ -270,17 +288,17 @@ export type Database = {
         Update: {
           availability?: Json | null
           bio?: string | null
+          boosted_until?: string | null
           certs?: string[] | null
           cf_video_uid?: string | null
           created_at?: string | null
           experience_band?: string | null
-          hourly_rate_max?: number | null
-          hourly_rate_min?: number | null
           id?: string
           is_complete?: boolean | null
           location?: unknown
           other_credentials?: string[] | null
           photo_url?: string | null
+          photos?: Json
           profile_strength_pct?: number | null
           right_swipes_received_count?: number | null
           specialties?: string[] | null
@@ -328,8 +346,12 @@ export type Database = {
           created_at: string | null
           days: string[] | null
           description: string | null
+          geog: unknown
           id: string
           location: unknown
+          location_lat: number | null
+          location_lng: number | null
+          location_text: string | null
           pay_max: number | null
           pay_min: number | null
           pay_negotiable: boolean | null
@@ -349,8 +371,12 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          geog?: unknown
           id?: string
           location?: unknown
+          location_lat?: number | null
+          location_lng?: number | null
+          location_text?: string | null
           pay_max?: number | null
           pay_min?: number | null
           pay_negotiable?: boolean | null
@@ -370,8 +396,12 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          geog?: unknown
           id?: string
           location?: unknown
+          location_lat?: number | null
+          location_lng?: number | null
+          location_text?: string | null
           pay_max?: number | null
           pay_min?: number | null
           pay_negotiable?: boolean | null
@@ -472,7 +502,8 @@ export type Database = {
           listing_id: string | null
           pending_expires_at: string | null
           pending_side: string | null
-          status: string | null
+          status: string
+          status_before_archive: string | null
           updated_at: string | null
         }
         Insert: {
@@ -487,7 +518,8 @@ export type Database = {
           listing_id?: string | null
           pending_expires_at?: string | null
           pending_side?: string | null
-          status?: string | null
+          status?: string
+          status_before_archive?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -502,7 +534,8 @@ export type Database = {
           listing_id?: string | null
           pending_expires_at?: string | null
           pending_side?: string | null
-          status?: string | null
+          status?: string
+          status_before_archive?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -534,6 +567,7 @@ export type Database = {
           body: string
           created_at: string | null
           id: string
+          image_url: string | null
           match_id: string
           read_at: string | null
           sender_id: string
@@ -542,6 +576,7 @@ export type Database = {
           body: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           match_id: string
           read_at?: string | null
           sender_id: string
@@ -550,6 +585,7 @@ export type Database = {
           body?: string
           created_at?: string | null
           id?: string
+          image_url?: string | null
           match_id?: string
           read_at?: string | null
           sender_id?: string
@@ -629,10 +665,13 @@ export type Database = {
           created_at: string | null
           email: string
           full_name: string | null
+          geog: unknown
           id: string
           is_banned: boolean | null
           locale: string | null
           location: unknown
+          location_lat: number | null
+          location_lng: number | null
           notification_prefs: Json | null
           onboarding_completed: boolean | null
           open_to_offers: boolean | null
@@ -653,10 +692,13 @@ export type Database = {
           created_at?: string | null
           email: string
           full_name?: string | null
+          geog?: unknown
           id: string
           is_banned?: boolean | null
           locale?: string | null
           location?: unknown
+          location_lat?: number | null
+          location_lng?: number | null
           notification_prefs?: Json | null
           onboarding_completed?: boolean | null
           open_to_offers?: boolean | null
@@ -677,10 +719,13 @@ export type Database = {
           created_at?: string | null
           email?: string
           full_name?: string | null
+          geog?: unknown
           id?: string
           is_banned?: boolean | null
           locale?: string | null
           location?: unknown
+          location_lat?: number | null
+          location_lng?: number | null
           notification_prefs?: Json | null
           onboarding_completed?: boolean | null
           open_to_offers?: boolean | null
@@ -1076,11 +1121,30 @@ export type Database = {
           },
         ]
       }
+      super_like_usage: {
+        Row: {
+          month: string
+          used: number
+          user_id: string
+        }
+        Insert: {
+          month: string
+          used?: number
+          user_id: string
+        }
+        Update: {
+          month?: string
+          used?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       swipes: {
         Row: {
           created_at: string | null
           direction: string
           id: string
+          is_super: boolean
           swiper_id: string
           target_coach_id: string | null
           target_listing_id: string | null
@@ -1089,6 +1153,7 @@ export type Database = {
           created_at?: string | null
           direction: string
           id?: string
+          is_super?: boolean
           swiper_id: string
           target_coach_id?: string | null
           target_listing_id?: string | null
@@ -1097,6 +1162,7 @@ export type Database = {
           created_at?: string | null
           direction?: string
           id?: string
+          is_super?: boolean
           swiper_id?: string
           target_coach_id?: string | null
           target_listing_id?: string | null
@@ -1214,28 +1280,22 @@ export type Database = {
           city: string | null
           full_name: string | null
           id: string | null
-          locale: string | null
           open_to_offers: boolean | null
           role: string | null
-          state: string | null
         }
         Insert: {
           city?: string | null
           full_name?: string | null
           id?: string | null
-          locale?: string | null
           open_to_offers?: boolean | null
           role?: string | null
-          state?: string | null
         }
         Update: {
           city?: string | null
           full_name?: string | null
           id?: string | null
-          locale?: string | null
           open_to_offers?: boolean | null
           role?: string | null
-          state?: string | null
         }
         Relationships: []
       }
@@ -1330,6 +1390,8 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      activate_coach_boost: { Args: never; Returns: string }
+      add_push_token: { Args: { p_token: string }; Returns: undefined }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -1368,6 +1430,12 @@ export type Database = {
             }
             Returns: string
           }
+      coach_ids_near: {
+        Args: { p_lat: number; p_lng: number; p_radius_miles: number }
+        Returns: {
+          id: string
+        }[]
+      }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1499,8 +1567,100 @@ export type Database = {
         Returns: boolean
       }
       geomfromewkt: { Args: { "": string }; Returns: unknown }
+      get_coach_deck: {
+        Args: {
+          p_exclude?: string[]
+          p_experience?: string
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_radius_miles?: number
+          p_specialties?: string[]
+        }
+        Returns: Json[]
+      }
+      get_job_deck: {
+        Args: {
+          p_exclude?: string[]
+          p_facility?: string
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_pay_min?: number
+          p_pill?: string
+          p_radius_miles?: number
+        }
+        Returns: Json[]
+      }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          banned_at: string | null
+          banned_by: string | null
+          banned_reason: string | null
+          city: string | null
+          created_at: string | null
+          email: string
+          full_name: string | null
+          geog: unknown
+          id: string
+          is_banned: boolean | null
+          locale: string | null
+          location: unknown
+          location_lat: number | null
+          location_lng: number | null
+          notification_prefs: Json | null
+          onboarding_completed: boolean | null
+          open_to_offers: boolean | null
+          push_tokens: Json | null
+          role: string
+          search_radius_miles: number | null
+          signup_device_fingerprint: string | null
+          signup_ip: unknown
+          signup_user_agent: string | null
+          state: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       gettransactionid: { Args: never; Returns: unknown }
+      has_entitlement: {
+        Args: { p_tier: string; p_user: string }
+        Returns: boolean
+      }
+      increment_daily_swipe: {
+        Args: { p_date: string; p_limit: number; p_user_id: string }
+        Returns: number
+      }
+      increment_listing_view: {
+        Args: { p_listing_id: string }
+        Returns: undefined
+      }
+      increment_super_like: {
+        Args: { p_limit: number; p_month: string; p_user_id: string }
+        Returns: number
+      }
       is_admin: { Args: never; Returns: boolean }
+      is_match_participant: { Args: { p_match_id: string }; Returns: boolean }
+      is_privileged_caller: { Args: never; Returns: boolean }
+      job_ids_near: {
+        Args: { p_lat: number; p_lng: number; p_radius_miles: number }
+        Returns: {
+          id: string
+        }[]
+      }
+      listing_applicant_counts: {
+        Args: never
+        Returns: {
+          applicant_count: number
+          listing_id: string
+        }[]
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
@@ -1542,6 +1702,10 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      set_match_status: {
+        Args: { p_match_id: string; p_status: string }
+        Returns: undefined
+      }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: unknown
@@ -2160,12 +2324,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2189,11 +2353,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2214,11 +2378,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2239,11 +2403,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -2256,11 +2420,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

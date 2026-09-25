@@ -103,7 +103,7 @@ export default async function UserDetailPage({
       .from('blocks')
       .select('blocker_id, blocked_id, created_at, blocker:profiles!blocker_id(id, full_name)')
       .eq('blocked_id', id),
-    (supabase as any)
+    supabase
       .from('super_like_usage')
       .select('used')
       .eq('user_id', id)
@@ -113,11 +113,11 @@ export default async function UserDetailPage({
 
   if (!profile) notFound()
 
-  const coachProfile = (profile as any).coach_profiles
-  const clientProfile = (profile as any).client_profiles
+  const coachProfile = profile.coach_profiles
+  const clientProfile = profile.client_profiles
   // authUser is already the `data` field from getUserById: { user: User | null }
   const authData = (authUser as any)?.user ?? null
-  const superLikeUsed = (superLikeRow as any)?.used ?? 0
+  const superLikeUsed = superLikeRow?.used ?? 0
 
   const coachPhotos = coachProfile?.photos as Array<{ url: string; caption: string }> | null
   const clientPhotos = clientProfile?.photos as Array<{ url: string; caption: string }> | null
@@ -164,7 +164,7 @@ export default async function UserDetailPage({
                     </Badge>
                   )}
                   {profile.role === 'coach' && (
-                    (profile as any).open_to_offers !== false
+                    profile.open_to_offers !== false
                       ? <Badge variant="outline" className="text-green-600 border-green-300">✓ Open to offers</Badge>
                       : <Badge variant="outline" className="text-amber-600 border-amber-300">✗ Hidden from search</Badge>
                   )}
@@ -231,20 +231,20 @@ export default async function UserDetailPage({
                 <span className="font-medium">Bio:</span> {coachProfile.bio}
               </p>
             )}
-            {coachProfile.specialties?.length > 0 && (
+            {!!coachProfile.specialties?.length && (
               <p>
                 <span className="font-medium">Specialties:</span>{' '}
-                {coachProfile.specialties.join(', ')}
+                {coachProfile.specialties?.join(', ')}
               </p>
             )}
-            {(coachProfile as any).certs?.length > 0 && (
+            {!!coachProfile.certs?.length && (
               <p>
                 <span className="font-medium">Certifications:</span>{' '}
-                {(coachProfile as any).certs.join(', ')}
+                {coachProfile.certs?.join(', ')}
               </p>
             )}
             {(() => {
-              const avail = (coachProfile as any).availability as { days?: string[]; times?: string[] } | null
+              const avail = coachProfile.availability as { days?: string[]; times?: string[] } | null
               const parts = [avail?.days?.join(', '), avail?.times?.join(', ')].filter(Boolean)
               return parts.length > 0 ? (
                 <p>
@@ -257,18 +257,18 @@ export default async function UserDetailPage({
                 Has profile video (CF UID: {coachProfile.cf_video_uid})
               </p>
             )}
-            {(coachProfile as any).boosted_until &&
-              new Date((coachProfile as any).boosted_until) > new Date() && (
+            {coachProfile.boosted_until &&
+              new Date(coachProfile.boosted_until) > new Date() && (
                 <p className="text-amber-600">
                   <span className="font-medium">⚡ Boosted until:</span>{' '}
-                  {new Date((coachProfile as any).boosted_until).toLocaleString()}{' '}
+                  {new Date(coachProfile.boosted_until).toLocaleString()}{' '}
                   <EndBoostButton userId={id} />
                 </p>
               )}
             <SetProfileCompleteButton
               userId={id}
               role="coach"
-              isComplete={(coachProfile as any).is_complete ?? false}
+              isComplete={coachProfile.is_complete ?? false}
             />
             <PhotoGallery photos={coachPhotos} primaryUrl={coachProfile.photo_url} primaryLabel="Profile photo" />
           </CardContent>
@@ -314,7 +314,7 @@ export default async function UserDetailPage({
             <SetProfileCompleteButton
               userId={id}
               role="client"
-              isComplete={(clientProfile as any).is_complete ?? false}
+              isComplete={clientProfile.is_complete ?? false}
             />
             <PhotoGallery photos={clientPhotos} primaryUrl={clientProfile.logo_url} primaryLabel="Company logo" />
           </CardContent>
@@ -439,7 +439,7 @@ export default async function UserDetailPage({
         <GrantAdminPanel
           userId={id}
           isAdmin={!!adminUser}
-          adminRole={(adminUser as any)?.role ?? null}
+          adminRole={adminUser?.role ?? null}
         />
         <ChangeRolePanel userId={id} currentRole={profile.role} />
       </div>

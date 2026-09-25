@@ -14,14 +14,14 @@ export default async function EditUserProfilePage({
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, full_name, role, coach_profiles(*), client_profiles(*)')
+    .select('id, full_name, role, open_to_offers, coach_profiles(*), client_profiles(*)')
     .eq('id', id)
     .single()
 
   if (!profile) notFound()
 
-  const coachProfile = (profile as any).coach_profiles
-  const clientProfile = (profile as any).client_profiles
+  const coachProfile = profile.coach_profiles
+  const clientProfile = profile.client_profiles
 
   if (profile.role !== 'coach' && profile.role !== 'client') notFound()
 
@@ -53,8 +53,8 @@ export default async function EditUserProfilePage({
             bio: coachProfile?.bio ?? null,
             experience_band: coachProfile?.experience_band ?? null,
             specialties: coachProfile?.specialties ?? null,
-            certs: (coachProfile as any)?.certs ?? null,
-            open_to_offers: (profile as any).open_to_offers ?? true,
+            certs: coachProfile?.certs ?? null,
+            open_to_offers: profile.open_to_offers ?? true,
           }}
         />
       ) : (
