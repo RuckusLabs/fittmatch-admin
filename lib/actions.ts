@@ -755,3 +755,23 @@ export async function reviewCert(
   revalidatePath(`/users/${row.coach_id}`)
   return { error: null }
 }
+
+// Review moderation: hidden reviews drop out of profiles and rating aggregates (trigger).
+export async function setReviewStatus(
+  reviewId: string,
+  status: 'visible' | 'hidden'
+): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(MODERATORS)
+  const { data: row, error } = await createServiceClient()
+    .from('reviews')
+    .update({ status })
+    .eq('id', reviewId)
+    .select('reviewee_id')
+    .single()
+  if (error) return { error: error.message }
+  await logAudit(adminId, status === 'hidden' ? 'hide_review' : 'unhide_review', 'review', reviewId, {
+    reviewee_id: row.reviewee_id,
+  })
+  revalidatePath(`/users/${row.reviewee_id}`)
+  return { error: null }
+}

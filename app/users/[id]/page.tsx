@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator'
 import { Pencil } from 'lucide-react'
 import { tierLabel, UUID_RE } from '@/lib/labels'
 import { EndBoostButton } from '@/components/EndBoostButton'
+import { ReviewsPanel } from '@/components/ReviewsPanel'
 
 export default async function UserDetailPage({
   params,
@@ -112,6 +113,13 @@ export default async function UserDetailPage({
   ])
 
   if (!profile) notFound()
+
+  const { data: reviewsReceived } = await supabase
+    .from('reviews')
+    .select('id, rating, body, status, created_at, reviewer:profiles!reviews_reviewer_id_fkey(full_name)')
+    .eq('reviewee_id', id)
+    .order('created_at', { ascending: false })
+    .limit(50)
 
   const coachProfile = profile.coach_profiles
   const clientProfile = profile.client_profiles
@@ -363,6 +371,7 @@ export default async function UserDetailPage({
 
       {/* Matches */}
       <MatchesPanel matches={(matches ?? []) as any} userId={id} />
+      <ReviewsPanel reviews={(reviewsReceived ?? []) as any} />
 
       {/* Blocks */}
       <BlocksPanel
