@@ -54,3 +54,13 @@ export function chatMediaPath(url: string): string | null {
   if (i === -1) return null
   return decodeURIComponent(url.slice(i + marker.length).split('?')[0])
 }
+
+// Hiring pipeline (applications.stage) — mirrors the mobile app's lib/constants.ts.
+export const PIPELINE_STAGES = ['new', 'interviewing', 'offered', 'hired', 'not_a_fit'] as const
+export const PIPELINE_STAGE_LABEL: Record<(typeof PIPELINE_STAGES)[number], string> = {
+  new: 'New',
+  interviewing: 'Interviewing',
+  offered: 'Offered',
+  hired: 'Hired',
+  not_a_fit: 'Not a fit',
+}
