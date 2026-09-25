@@ -1,6 +1,6 @@
 // Display helpers for enum-ish columns shared with the mobile app's schema.
 
-export type MatchStatus = 'active' | 'pending' | 'expired' | 'archived' | 'unmatched' | 'blocked'
+export type MatchStatus = 'active' | 'pending' | 'expired' | 'archived' | 'unmatched' | 'blocked' | 'declined'
 
 // Legacy rows used NULL for an active mutual match.
 export function normalizeMatchStatus(status: string | null): MatchStatus {
@@ -14,6 +14,7 @@ const MATCH_STATUS_LABEL: Record<MatchStatus, string> = {
   archived: 'Archived',
   unmatched: 'Unmatched',
   blocked: 'Blocked',
+  declined: 'Declined',
 }
 
 export function matchStatusLabel(status: string | null): string {
@@ -24,6 +25,7 @@ export function matchStatusVariant(status: string | null): 'default' | 'secondar
   switch (normalizeMatchStatus(status)) {
     case 'blocked': return 'destructive'
     case 'unmatched':
+    case 'declined':
     case 'expired': return 'secondary'
     case 'pending':
     case 'archived': return 'outline'
