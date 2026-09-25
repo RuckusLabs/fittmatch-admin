@@ -19,6 +19,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Pencil } from 'lucide-react'
+import { tierLabel, UUID_RE } from '@/lib/labels'
+import { EndBoostButton } from '@/components/EndBoostButton'
 
 export default async function UserDetailPage({
   params,
@@ -26,6 +28,7 @@ export default async function UserDetailPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
+  if (!UUID_RE.test(id)) notFound() // id is interpolated into PostgREST .or() filters
   const supabase = createServiceClient()
 
   const [
@@ -157,7 +160,7 @@ export default async function UserDetailPage({
                   )}
                   {subscription?.status === 'active' && (
                     <Badge className="capitalize bg-green-600">
-                      {subscription.tier ?? 'Pro'}
+                      {tierLabel(subscription.tier)}
                     </Badge>
                   )}
                   {profile.role === 'coach' && (
@@ -240,6 +243,15 @@ export default async function UserDetailPage({
                 {(coachProfile as any).certs.join(', ')}
               </p>
             )}
+            {(() => {
+              const avail = (coachProfile as any).availability as { days?: string[]; times?: string[] } | null
+              const parts = [avail?.days?.join(', '), avail?.times?.join(', ')].filter(Boolean)
+              return parts.length > 0 ? (
+                <p>
+                  <span className="font-medium">Available:</span> {parts.join(' · ')}
+                </p>
+              ) : null
+            })()}
             {coachProfile.cf_video_uid && (
               <p className="text-muted-foreground">
                 Has profile video (CF UID: {coachProfile.cf_video_uid})
@@ -249,7 +261,8 @@ export default async function UserDetailPage({
               new Date((coachProfile as any).boosted_until) > new Date() && (
                 <p className="text-amber-600">
                   <span className="font-medium">⚡ Boosted until:</span>{' '}
-                  {new Date((coachProfile as any).boosted_until).toLocaleString()}
+                  {new Date((coachProfile as any).boosted_until).toLocaleString()}{' '}
+                  <EndBoostButton userId={id} />
                 </p>
               )}
             <SetProfileCompleteButton

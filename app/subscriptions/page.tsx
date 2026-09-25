@@ -1,6 +1,7 @@
 import { createServiceClient } from '@/lib/supabase-server'
 import { StatCard } from '@/components/StatCard'
 import { Badge } from '@/components/ui/badge'
+import { tierLabel } from '@/lib/labels'
 
 type SubRow = {
   id: string
@@ -9,15 +10,14 @@ type SubRow = {
   billing_period: string | null
   current_period_end: string | null
   provider_subscription_id: string | null
+  provider: string | null
   user: { full_name: string | null; email: string } | null
 }
 
+// Monthly list price per tier (USD). Keep in sync with App Store Connect pricing.
 const TIER_MONTHLY_PRICE: Record<string, number> = {
-  pro_monthly: 29,
-  pro_annual: 199 / 12,
   coach_pro: 29,
   client_pro: 49,
-  pro: 29,
 }
 
 const statusBadgeVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -33,17 +33,19 @@ export default async function SubscriptionsPage() {
   const { data: subs } = await supabase
     .from('subscriptions')
     .select(
-      'id, tier, status, billing_period, current_period_end, provider_subscription_id, user:profiles!subscriptions_user_id_fkey(full_name, email)'
+      'id, tier, status, provider, billing_period, current_period_end, provider_subscription_id, user:profiles!subscriptions_user_id_fkey(full_name, email)'
     )
     .order('created_at', { ascending: false })
     .returns<SubRow[]>()
 
-  const activeSubs = subs?.filter((s) => s.status === 'active') ?? []
-  const mrr = activeSubs.reduce((sum, sub) => {
-    const tier = sub.tier?.toLowerCase() ?? ''
-    const price = TIER_MONTHLY_PRICE[tier] ?? 0
-    return sum + price
-  }, 0)
+  const now = Date.now()
+  const activeSubs = subs?.filter(
+    (s) => s.status === 'active' && (!s.current_period_end || new Date(s.current_period_end).getTime() > now)
+  ) ?? []
+  // Paid only: gifted subscriptions (no provider) aren't revenue.
+  const mrr = activeSubs
+    .filter((s) => s.provider === 'revenuecat')
+    .reduce((sum, sub) => sum + (TIER_MONTHLY_PRICE[sub.tier ?? ''] ?? 0), 0)
 
   return (
     <div className="space-y-6">
@@ -51,7 +53,7 @@ export default async function SubscriptionsPage() {
         <StatCard
           title="MRR (estimate)"
           value={`$${mrr.toLocaleString('en-US', { maximumFractionDigits: 0 })}`}
-          description="Active subs × monthly price"
+          description="Paid (RevenueCat) active subs × monthly list price"
         />
         <StatCard title="Active Subscriptions" value={activeSubs.length} />
         <StatCard title="Total Subscriptions" value={subs?.length ?? 0} />
@@ -90,7 +92,7 @@ export default async function SubscriptionsPage() {
                 </td>
                 <td className="px-4 py-2.5">
                   <Badge variant="secondary" className="capitalize text-xs">
-                    {sub.tier ?? '—'}
+                    {tierLabel(sub.tier)}
                   </Badge>
                 </td>
                 <td className="px-4 py-2.5">

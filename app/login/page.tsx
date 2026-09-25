@@ -26,6 +26,8 @@ function LoginForm() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        // Admin login must never create accounts in the shared production project.
+        shouldCreateUser: false,
       },
     })
 

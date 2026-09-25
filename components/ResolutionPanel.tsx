@@ -13,7 +13,6 @@ interface ResolutionPanelProps {
   currentNotes: string | null
 }
 
-const STATUS_OPTIONS = ['open', 'reviewing', 'resolved', 'dismissed']
 const ACTION_OPTIONS = [
   { value: 'no_action', label: 'No action' },
   { value: 'warning', label: 'Warning issued' },
@@ -32,13 +31,17 @@ export function ResolutionPanel({
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  function submit(status: 'resolved' | 'dismissed') {
     setError(null)
     startTransition(async () => {
-      const result = await resolveReport(reportId, action, notes)
+      const result = await resolveReport(reportId, action, notes, status)
       if (result.error) setError(result.error)
     })
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    submit('resolved')
   }
 
   return (
@@ -81,9 +84,18 @@ export function ResolutionPanel({
             <p className="text-sm text-destructive">{error}</p>
           )}
 
-          <Button type="submit" disabled={isPending} className="w-full">
-            {isPending ? 'Saving...' : 'Save resolution'}
-          </Button>
+          {currentStatus && ['resolved', 'dismissed'].includes(currentStatus) && (
+            <p className="text-xs text-muted-foreground">Currently {currentStatus}. Saving again overwrites it.</p>
+          )}
+
+          <div className="flex gap-2">
+            <Button type="submit" disabled={isPending} className="flex-1">
+              {isPending ? 'Saving...' : 'Save resolution'}
+            </Button>
+            <Button type="button" variant="outline" disabled={isPending} onClick={() => submit('dismissed')}>
+              Dismiss
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

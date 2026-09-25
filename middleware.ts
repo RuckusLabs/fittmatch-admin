@@ -5,7 +5,15 @@ import type { Database } from '@/types/database'
 
 type SetAllCookies = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0]
 
+// Exact public paths. The matcher used to exclude any path *starting with* "login"/"auth",
+// which also exempted e.g. server-action POSTs to /login from the admin check.
+const PUBLIC_PATHS = new Set(['/login', '/auth/callback'])
+
 export async function middleware(request: NextRequest) {
+  if (PUBLIC_PATHS.has(request.nextUrl.pathname) && !request.headers.has('next-action')) {
+    return NextResponse.next({ request })
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient<Database>(
@@ -56,5 +64,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|login|auth).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

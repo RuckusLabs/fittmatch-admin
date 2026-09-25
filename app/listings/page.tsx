@@ -16,12 +16,15 @@ type ListingRow = {
   client: { company_name: string | null } | null
 }
 
-const STATUS_TABS = ['all', 'live', 'draft', 'removed']
+const STATUS_TABS = ['all', 'live', 'draft', 'paused', 'closed', 'removed', 'deleted']
 
 const statusBadgeClass: Record<string, string> = {
   live: 'bg-green-100 text-green-700 border-green-200',
   draft: 'bg-yellow-100 text-yellow-700 border-yellow-200',
   removed: 'bg-gray-100 text-gray-500 border-gray-200',
+  paused: 'bg-orange-100 text-orange-700 border-orange-200',
+  closed: 'bg-slate-100 text-slate-600 border-slate-200',
+  deleted: 'bg-red-50 text-red-600 border-red-200',
 }
 
 const PAGE_SIZE = 50

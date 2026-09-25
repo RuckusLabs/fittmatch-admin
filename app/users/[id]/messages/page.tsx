@@ -4,6 +4,8 @@ import { createServiceClient } from '@/lib/supabase-server'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft } from 'lucide-react'
+import { RemoveMediaButton } from '@/components/RemoveMediaButton'
+import { chatMediaPath, matchStatusLabel, matchStatusVariant, UUID_RE } from '@/lib/labels'
 
 export default async function UserMessagesPage({
   params,
@@ -14,6 +16,7 @@ export default async function UserMessagesPage({
 }) {
   const { id } = await params
   const { matchId: focusMatchId } = await searchParams
+  if (!UUID_RE.test(id)) notFound() // id is interpolated into a PostgREST .or() filter
   const supabase = createServiceClient()
 
   const [{ data: profile }, { data: matches }] = await Promise.all([
@@ -37,10 +40,19 @@ export default async function UserMessagesPage({
       : (
           await supabase
             .from('messages')
-            .select('id, body, created_at, read_at, sender_id, match_id')
+            // image_url isn't in the generated types yet
+            .select('id, body, image_url, created_at, read_at, sender_id, match_id' as 'id, body, created_at, read_at, sender_id, match_id')
             .in('match_id', matchIds)
             .order('created_at', { ascending: true })
-        ).data ?? []
+        ).data as Array<{ id: string; body: string; image_url: string | null; created_at: string | null; read_at: string | null; sender_id: string; match_id: string }> ?? []
+
+  // chat-media is a private bucket — sign every image for this page view.
+  const imagePaths = messages.map((m) => (m.image_url ? chatMediaPath(m.image_url) : null)).filter((p): p is string => !!p)
+  const signedByPath = new Map<string, string>()
+  if (imagePaths.length) {
+    const { data: signed } = await supabase.storage.from('chat-media').createSignedUrls(imagePaths, 60 * 10)
+    for (const s of signed ?? []) if (s.path && s.signedUrl) signedByPath.set(s.path, s.signedUrl)
+  }
 
   const messagesByMatch = new Map<string, typeof messages>()
   for (const msg of messages) {
@@ -83,8 +95,8 @@ export default async function UserMessagesPage({
                     {coachName} ↔ {clientName}
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="capitalize text-xs">
-                      {match.status ?? 'unknown'}
+                    <Badge variant={matchStatusVariant(match.status)} className="text-xs">
+                      {matchStatusLabel(match.status)}
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       {msgs.length} message{msgs.length !== 1 ? 's' : ''}
@@ -111,8 +123,21 @@ export default async function UserMessagesPage({
                                 : 'bg-muted'
                             }`}
                           >
+                            {msg.image_url && (() => {
+                              const path = chatMediaPath(msg.image_url)
+                              const src = path ? signedByPath.get(path) : undefined
+                              return src ? (
+                                <a href={src} target="_blank" rel="noreferrer">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img src={src} alt="Chat attachment" className="max-h-48 rounded mb-1" />
+                                </a>
+                              ) : (
+                                <span className="italic text-xs opacity-70">[image unavailable]</span>
+                              )
+                            })()}
                             {msg.body}
                           </div>
+                          {msg.image_url && <RemoveMediaButton messageId={msg.id} />}
                           <span className="text-[10px] text-muted-foreground">
                             {msg.created_at
                               ? new Date(msg.created_at).toLocaleString()
