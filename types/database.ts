@@ -112,6 +112,54 @@ export type Database = {
           },
         ]
       }
+      applications: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          notes: string | null
+          stage: string
+          stage_changed_at: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          listing_id: string
+          notes?: string | null
+          stage?: string
+          stage_changed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          listing_id?: string
+          notes?: string | null
+          stage?: string
+          stage_changed_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coach_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -1702,6 +1750,15 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      set_application_stage: {
+        Args: {
+          p_coach_id: string
+          p_listing_id: string
+          p_notes?: string
+          p_stage?: string
+        }
+        Returns: undefined
+      }
       set_match_status: {
         Args: { p_match_id: string; p_status: string }
         Returns: undefined

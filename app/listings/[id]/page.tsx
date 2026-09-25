@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { EditListingForm } from '@/components/EditListingForm'
 import { ArrowLeft } from 'lucide-react'
+import { PIPELINE_STAGES, PIPELINE_STAGE_LABEL } from '@/lib/labels'
 
 export default async function EditListingPage({
   params,
@@ -12,7 +13,7 @@ export default async function EditListingPage({
   const { id } = await params
   const supabase = createServiceClient()
 
-  const [{ data: listing }, { count: applicantCount }] = await Promise.all([
+  const [{ data: listing }, { count: applicantCount }, { data: applications }] = await Promise.all([
     supabase
       .from('job_listings')
       .select(
@@ -25,7 +26,13 @@ export default async function EditListingPage({
       .select('id', { count: 'exact', head: true })
       .eq('target_listing_id', id)
       .eq('direction', 'right'),
+    supabase.from('applications').select('stage').eq('listing_id', id),
   ])
+
+  const stageCounts = (applications ?? []).reduce<Record<string, number>>((acc, a) => {
+    acc[a.stage] = (acc[a.stage] ?? 0) + 1
+    return acc
+  }, {})
 
   if (!listing) notFound()
 
@@ -52,6 +59,17 @@ export default async function EditListingPage({
         <span>👁 {(listing as { views_count?: number | null }).views_count ?? 0} views</span>
         <span>👤 {applicantCount ?? 0} applicants</span>
       </div>
+
+      {(applications?.length ?? 0) > 0 && (
+        <div className="flex flex-wrap gap-2 text-xs">
+          <span className="text-muted-foreground">Pipeline:</span>
+          {PIPELINE_STAGES.map((s) => (
+            <span key={s} className="rounded-full border px-2 py-0.5">
+              {PIPELINE_STAGE_LABEL[s]} {stageCounts[s] ?? 0}
+            </span>
+          ))}
+        </div>
+      )}
 
       <EditListingForm listing={listing} />
     </div>
