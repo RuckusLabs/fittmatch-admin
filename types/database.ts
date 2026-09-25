@@ -1677,6 +1677,7 @@ export type Database = {
             }
             Returns: string
           }
+      admin_metrics: { Args: { p_days?: number }; Returns: Json }
       can_review: { Args: { p_reviewee: string }; Returns: boolean }
       coach_ids_near: {
         Args: { p_lat: number; p_lng: number; p_radius_miles: number }
@@ -1846,6 +1847,7 @@ export type Database = {
         }
         Returns: Json[]
       }
+      get_my_analytics: { Args: never; Returns: Json }
       get_my_profile: {
         Args: never
         Returns: {
@@ -1888,6 +1890,7 @@ export type Database = {
         Args: { p_tier: string; p_user: string }
         Returns: boolean
       }
+      increment_coach_view: { Args: { p_coach_id: string }; Returns: undefined }
       increment_daily_swipe: {
         Args: { p_date: string; p_limit: number; p_user_id: string }
         Returns: number
