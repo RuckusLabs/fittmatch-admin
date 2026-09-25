@@ -40,11 +40,10 @@ export default async function UserMessagesPage({
       : (
           await supabase
             .from('messages')
-            // image_url isn't in the generated types yet
-            .select('id, body, image_url, created_at, read_at, sender_id, match_id' as 'id, body, created_at, read_at, sender_id, match_id')
+            .select('id, body, image_url, created_at, read_at, sender_id, match_id')
             .in('match_id', matchIds)
             .order('created_at', { ascending: true })
-        ).data as Array<{ id: string; body: string; image_url: string | null; created_at: string | null; read_at: string | null; sender_id: string; match_id: string }> ?? []
+        ).data ?? []
 
   // chat-media is a private bucket — sign every image for this page view.
   const imagePaths = messages.map((m) => (m.image_url ? chatMediaPath(m.image_url) : null)).filter((p): p is string => !!p)

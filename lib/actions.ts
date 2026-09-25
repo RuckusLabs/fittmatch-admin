@@ -648,8 +648,7 @@ export async function resetSuperLikes(userId: string): Promise<{ error: string |
   const serviceClient = createServiceClient()
   const month = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
 
-  // super_like_usage isn't in the generated types yet — cast per the repo convention.
-  const { error } = await (serviceClient as any)
+  const { error } = await serviceClient
     .from('super_like_usage')
     .delete()
     .eq('user_id', userId)
@@ -673,7 +672,7 @@ export async function setProfileComplete(
 
   const { error } = await serviceClient
     .from(table)
-    .update({ is_complete: value } as any)
+    .update({ is_complete: value })
     .eq('id', userId)
 
   if (error) return { error: error.message }
@@ -689,8 +688,7 @@ export async function removeMessageMedia(messageId: string): Promise<{ error: st
   const adminId = await requireAdmin(MODERATORS)
   const serviceClient = createServiceClient()
 
-  // image_url isn't in the generated types yet — cast per the repo convention.
-  const { data: message, error: fetchError } = await (serviceClient as any)
+  const { data: message, error: fetchError } = await serviceClient
     .from('messages')
     .select('id, match_id, image_url')
     .eq('id', messageId)
@@ -704,7 +702,7 @@ export async function removeMessageMedia(messageId: string): Promise<{ error: st
     if (storageError) return { error: storageError.message }
   }
 
-  const { error } = await (serviceClient as any)
+  const { error } = await serviceClient
     .from('messages')
     .update({ image_url: null })
     .eq('id', messageId)
@@ -717,8 +715,7 @@ export async function removeMessageMedia(messageId: string): Promise<{ error: st
 
 export async function endCoachBoost(userId: string): Promise<{ error: string | null }> {
   const adminId = await requireAdmin(MODERATORS)
-  // boosted_until isn't in the generated types yet — cast per the repo convention.
-  const { error } = await (createServiceClient() as any)
+  const { error } = await createServiceClient()
     .from('coach_profiles')
     .update({ boosted_until: null })
     .eq('id', userId)
