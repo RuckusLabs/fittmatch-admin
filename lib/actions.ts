@@ -775,3 +775,47 @@ export async function setReviewStatus(
   revalidatePath(`/users/${row.reviewee_id}`)
   return { error: null }
 }
+
+// Promo codes: free Pro periods redeemed in-app via redeem_promo_code().
+export async function createPromoCode(data: {
+  code: string
+  days: number
+  maxRedemptions: number | null
+  expiresAt: string | null
+  tier: 'any' | 'coach_pro' | 'client_pro'
+  description: string | null
+}): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const code = data.code.trim().toUpperCase()
+  if (!/^[A-Z0-9_-]{3,32}$/.test(code)) return { error: 'Code must be 3–32 letters, numbers, - or _' }
+  if (!Number.isInteger(data.days) || data.days < 1 || data.days > 365) return { error: 'Days must be 1–365' }
+
+  const { data: row, error } = await createServiceClient()
+    .from('promo_codes')
+    .insert({
+      code,
+      description: data.description,
+      discount_type: 'trial_extension',
+      discount_value: data.days,
+      max_redemptions: data.maxRedemptions,
+      expires_at: data.expiresAt,
+      applies_to_tiers: data.tier === 'any' ? null : [data.tier],
+      is_active: true,
+    })
+    .select('id')
+    .single()
+  if (error) return { error: error.code === '23505' ? 'That code already exists' : error.message }
+
+  await logAudit(adminId, 'create_promo_code', 'promo_code', row.id, { code, days: data.days, tier: data.tier })
+  revalidatePath('/promo-codes')
+  return { error: null }
+}
+
+export async function setPromoCodeActive(id: string, active: boolean): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const { error } = await createServiceClient().from('promo_codes').update({ is_active: active }).eq('id', id)
+  if (error) return { error: error.message }
+  await logAudit(adminId, active ? 'activate_promo_code' : 'deactivate_promo_code', 'promo_code', id)
+  revalidatePath('/promo-codes')
+  return { error: null }
+}
