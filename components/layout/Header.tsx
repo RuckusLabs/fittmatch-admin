@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   '/listings': 'Listings',
   '/verifications': 'Cert Verifications',
   '/subscriptions': 'Subscriptions',
+  '/promo-codes': 'Promo Codes',
   '/audit-log': 'Audit Log',
 }
 

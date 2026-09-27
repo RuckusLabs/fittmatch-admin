@@ -10,6 +10,7 @@ import {
   CreditCard,
   ClipboardList,
   BadgeCheck,
+  Ticket,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/listings', label: 'Listings', icon: Briefcase },
   { href: '/verifications', label: 'Verifications', icon: BadgeCheck },
   { href: '/subscriptions', label: 'Subscriptions', icon: CreditCard },
+  { href: '/promo-codes', label: 'Promo Codes', icon: Ticket },
   { href: '/audit-log', label: 'Audit Log', icon: ClipboardList },
 ]
 

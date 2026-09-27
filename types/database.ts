@@ -816,6 +816,7 @@ export type Database = {
           open_to_offers: boolean | null
           push_tokens: Json | null
           role: string
+          saved_search: Json | null
           search_radius_miles: number | null
           signup_device_fingerprint: string | null
           signup_ip: unknown
@@ -843,6 +844,7 @@ export type Database = {
           open_to_offers?: boolean | null
           push_tokens?: Json | null
           role: string
+          saved_search?: Json | null
           search_radius_miles?: number | null
           signup_device_fingerprint?: string | null
           signup_ip?: unknown
@@ -870,6 +872,7 @@ export type Database = {
           open_to_offers?: boolean | null
           push_tokens?: Json | null
           role?: string
+          saved_search?: Json | null
           search_radius_miles?: number | null
           signup_device_fingerprint?: string | null
           signup_ip?: unknown
@@ -944,6 +947,49 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      promo_redemptions: {
+        Row: {
+          id: string
+          promo_code_id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          promo_code_id: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          promo_code_id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limit_violations: {
         Row: {
@@ -1822,6 +1868,7 @@ export type Database = {
           open_to_offers: boolean | null
           push_tokens: Json | null
           role: string
+          saved_search: Json | null
           search_radius_miles: number | null
           signup_device_fingerprint: string | null
           signup_ip: unknown
@@ -1912,6 +1959,7 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       process_listing_expiry: { Args: never; Returns: undefined }
+      redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       set_application_stage: {
         Args: {
@@ -2522,6 +2570,7 @@ export type Database = {
         }
         Returns: string
       }
+      weekly_digest: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never

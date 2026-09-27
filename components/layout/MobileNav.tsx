@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Menu,
   BadgeCheck,
+  Ticket,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
@@ -24,6 +25,7 @@ const navItems = [
   { href: '/listings', label: 'Listings', icon: Briefcase },
   { href: '/verifications', label: 'Verifications', icon: BadgeCheck },
   { href: '/subscriptions', label: 'Subscriptions', icon: CreditCard },
+  { href: '/promo-codes', label: 'Promo Codes', icon: Ticket },
   { href: '/audit-log', label: 'Audit Log', icon: ClipboardList },
 ]
 
