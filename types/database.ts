@@ -207,6 +207,64 @@ export type Database = {
           },
         ]
       }
+      cert_verifications: {
+        Row: {
+          cert_name: string
+          coach_id: string
+          created_at: string
+          file_path: string
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          cert_name: string
+          coach_id: string
+          created_at?: string
+          file_path: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          cert_name?: string
+          coach_id?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cert_verifications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coach_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cert_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cert_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_profiles: {
         Row: {
           bio: string | null
@@ -308,6 +366,7 @@ export type Database = {
           specialties: string[] | null
           title: string | null
           updated_at: string | null
+          verified_certs: string[]
           video_duration_seconds: number | null
           views_count: number | null
         }
@@ -330,6 +389,7 @@ export type Database = {
           specialties?: string[] | null
           title?: string | null
           updated_at?: string | null
+          verified_certs?: string[]
           video_duration_seconds?: number | null
           views_count?: number | null
         }
@@ -352,6 +412,7 @@ export type Database = {
           specialties?: string[] | null
           title?: string | null
           updated_at?: string | null
+          verified_certs?: string[]
           video_duration_seconds?: number | null
           views_count?: number | null
         }
@@ -1489,6 +1550,10 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      coach_profile_strength: {
+        Args: { cp: Database["public"]["Tables"]["coach_profiles"]["Row"] }
+        Returns: number
       }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
