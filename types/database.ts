@@ -1685,6 +1685,10 @@ export type Database = {
           id: string
         }[]
       }
+      coach_profile_is_complete: {
+        Args: { cp: Database["public"]["Tables"]["coach_profiles"]["Row"] }
+        Returns: boolean
+      }
       coach_profile_strength: {
         Args: { cp: Database["public"]["Tables"]["coach_profiles"]["Row"] }
         Returns: number
