@@ -12,7 +12,11 @@ const pageTitles: Record<string, string> = {
   '/reports': 'Reports',
   '/users': 'Users',
   '/listings': 'Listings',
+  '/verifications': 'Cert Verifications',
+  '/blocks': 'Blocks',
+  '/broadcast': 'Broadcast',
   '/subscriptions': 'Subscriptions',
+  '/promo-codes': 'Promo Codes',
   '/audit-log': 'Audit Log',
 }
 

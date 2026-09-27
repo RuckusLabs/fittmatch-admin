@@ -724,3 +724,152 @@ export async function endCoachBoost(userId: string): Promise<{ error: string | n
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }
+
+// Certification proof review. Approval mirrors into coach_profiles.verified_certs via trigger.
+export async function reviewCert(
+  verificationId: string,
+  decision: 'approved' | 'rejected',
+  note?: string
+): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(MODERATORS)
+  const serviceClient = createServiceClient()
+
+  const { data: row, error } = await serviceClient
+    .from('cert_verifications')
+    .update({
+      status: decision,
+      review_note: decision === 'rejected' ? (note?.trim() || 'Could not verify this certificate.') : null,
+      reviewed_by: adminId,
+      reviewed_at: new Date().toISOString(),
+    })
+    .eq('id', verificationId)
+    .select('coach_id, cert_name')
+    .single()
+  if (error) return { error: error.message }
+
+  await logAudit(adminId, decision === 'approved' ? 'approve_cert' : 'reject_cert', 'user', row.coach_id, {
+    cert: row.cert_name,
+    note,
+  })
+  revalidatePath('/verifications')
+  revalidatePath(`/users/${row.coach_id}`)
+  return { error: null }
+}
+
+// Review moderation: hidden reviews drop out of profiles and rating aggregates (trigger).
+export async function setReviewStatus(
+  reviewId: string,
+  status: 'visible' | 'hidden'
+): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(MODERATORS)
+  const { data: row, error } = await createServiceClient()
+    .from('reviews')
+    .update({ status })
+    .eq('id', reviewId)
+    .select('reviewee_id')
+    .single()
+  if (error) return { error: error.message }
+  await logAudit(adminId, status === 'hidden' ? 'hide_review' : 'unhide_review', 'review', reviewId, {
+    reviewee_id: row.reviewee_id,
+  })
+  revalidatePath(`/users/${row.reviewee_id}`)
+  return { error: null }
+}
+
+// Promo codes: free Pro periods redeemed in-app via redeem_promo_code().
+export async function createPromoCode(data: {
+  code: string
+  days: number
+  maxRedemptions: number | null
+  expiresAt: string | null
+  tier: 'any' | 'coach_pro' | 'client_pro'
+  description: string | null
+}): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const code = data.code.trim().toUpperCase()
+  if (!/^[A-Z0-9_-]{3,32}$/.test(code)) return { error: 'Code must be 3–32 letters, numbers, - or _' }
+  if (!Number.isInteger(data.days) || data.days < 1 || data.days > 365) return { error: 'Days must be 1–365' }
+
+  const { data: row, error } = await createServiceClient()
+    .from('promo_codes')
+    .insert({
+      code,
+      description: data.description,
+      discount_type: 'trial_extension',
+      discount_value: data.days,
+      max_redemptions: data.maxRedemptions,
+      expires_at: data.expiresAt,
+      applies_to_tiers: data.tier === 'any' ? null : [data.tier],
+      is_active: true,
+    })
+    .select('id')
+    .single()
+  if (error) return { error: error.code === '23505' ? 'That code already exists' : error.message }
+
+  await logAudit(adminId, 'create_promo_code', 'promo_code', row.id, { code, days: data.days, tier: data.tier })
+  revalidatePath('/promo-codes')
+  return { error: null }
+}
+
+export async function setPromoCodeActive(id: string, active: boolean): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const { error } = await createServiceClient().from('promo_codes').update({ is_active: active }).eq('id', id)
+  if (error) return { error: error.message }
+  await logAudit(adminId, active ? 'activate_promo_code' : 'deactivate_promo_code', 'promo_code', id)
+  revalidatePath('/promo-codes')
+  return { error: null }
+}
+
+// Announcement to a segment: in-app notification for everyone targeted, plus an optional
+// Expo push (sent from here with the recipients' stored tokens, 100 per request).
+export async function broadcastAnnouncement(input: {
+  title: string
+  body: string
+  audience: 'all' | 'coach' | 'client'
+  city: string | null
+  push: boolean
+}): Promise<{ error: string | null; recipients: number; pushed: number }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const title = input.title.trim().slice(0, 80)
+  const body = input.body.trim().slice(0, 300)
+  if (!title || !body) return { error: 'Title and message are required', recipients: 0, pushed: 0 }
+
+  const supabase = createServiceClient()
+  let query = supabase
+    .from('profiles')
+    .select('id, push_tokens')
+    .eq('onboarding_completed', true)
+    .eq('is_banned', false)
+    .limit(10000)
+  if (input.audience !== 'all') query = query.eq('role', input.audience)
+  if (input.city) query = query.ilike('city', input.city)
+  const { data: users, error } = await query
+  if (error) return { error: error.message, recipients: 0, pushed: 0 }
+  if (!users?.length) return { error: 'No users match that audience', recipients: 0, pushed: 0 }
+
+  for (let i = 0; i < users.length; i += 500) {
+    const { error: insErr } = await supabase.from('notifications').insert(
+      users.slice(i, i + 500).map((u) => ({ user_id: u.id, type: 'announcement', payload: { title, body } })),
+    )
+    if (insErr) return { error: insErr.message, recipients: i, pushed: 0 }
+  }
+
+  let pushed = 0
+  if (input.push) {
+    const tokens = users.flatMap((u) => (Array.isArray(u.push_tokens) ? (u.push_tokens as string[]) : []))
+    for (let i = 0; i < tokens.length; i += 100) {
+      const chunk = tokens.slice(i, i + 100)
+      const res = await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(chunk.map((to) => ({ to, title, body, sound: 'default', data: { type: 'announcement' } }))),
+      }).catch(() => null)
+      if (res?.ok) pushed += chunk.length
+    }
+  }
+
+  await logAudit(adminId, 'broadcast', 'announcement', adminId, {
+    title, audience: input.audience, city: input.city, recipients: users.length, pushed,
+  })
+  return { error: null, recipients: users.length, pushed }
+}

@@ -17,7 +17,7 @@ export default async function EditListingPage({
     supabase
       .from('job_listings')
       .select(
-        'id, title, description, status, pay_min, pay_max, pay_negotiable, role_type, boosted_until, views_count, client:client_profiles!job_listings_client_id_fkey(company_name)'
+        'id, title, description, status, pay_min, pay_max, pay_negotiable, role_type, boosted_until, views_count, expires_at, client:client_profiles!job_listings_client_id_fkey(company_name)'
       )
       .eq('id', id)
       .single(),
@@ -58,6 +58,9 @@ export default async function EditListingPage({
       <div className="flex gap-6 text-sm text-muted-foreground border-y py-2">
         <span>👁 {(listing as { views_count?: number | null }).views_count ?? 0} views</span>
         <span>👤 {applicantCount ?? 0} applicants</span>
+        {listing.expires_at && (
+          <span>⏳ {listing.status === 'live' ? 'closes' : 'closed'} {new Date(listing.expires_at).toLocaleDateString()}</span>
+        )}
       </div>
 
       {(applications?.length ?? 0) > 0 && (

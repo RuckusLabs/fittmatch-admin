@@ -81,6 +81,25 @@ export default async function DashboardPage() {
   }))
   const maxSignups = Math.max(...sparklineData.map((d) => d.count), 1)
 
+  // Funnel + activity (admin_metrics RPC, service role only).
+  const { data: metricsRaw } = await supabase.rpc('admin_metrics', { p_days: 30 })
+  const metrics = metricsRaw as {
+    funnel: Record<string, number>
+    dau: { day: string; dau: number }[] | null
+    wau: number
+  } | null
+  const funnelSteps: [string, string][] = [
+    ['signed_up', 'Signed up'],
+    ['onboarded', 'Onboarded'],
+    ['profile_complete', 'Profile complete'],
+    ['first_swipe', 'First swipe'],
+    ['first_match', 'First match'],
+    ['hired', 'Hired'],
+  ]
+  const top = metrics?.funnel?.signed_up ?? 0
+  const dau = metrics?.dau ?? []
+  const maxDau = Math.max(1, ...dau.map((d) => d.dau))
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -93,6 +112,46 @@ export default async function DashboardPage() {
         <StatCard title="Active Blocks" value={activeBlocks ?? 0} />
         <StatCard title="Disputes (7d)" value={disputedMatches ?? 0} />
       </div>
+
+      {metrics && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="rounded-lg border bg-white p-4 space-y-2">
+            <h2 className="font-semibold text-sm">Signup funnel — last 30 days</h2>
+            {funnelSteps.map(([key, label]) => {
+              const n = metrics.funnel?.[key] ?? 0
+              const pct = top > 0 ? Math.round((n / top) * 100) : 0
+              return (
+                <div key={key} className="text-sm">
+                  <div className="flex justify-between">
+                    <span>{label}</span>
+                    <span className="text-muted-foreground">{n}{top > 0 ? ` · ${pct}%` : ''}</span>
+                  </div>
+                  <div className="h-2 rounded bg-gray-100">
+                    <div className="h-2 rounded bg-slate-800" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="rounded-lg border bg-white p-4 space-y-2">
+            <div className="flex justify-between items-baseline">
+              <h2 className="font-semibold text-sm">Daily active users — last 30 days</h2>
+              <span className="text-xs text-muted-foreground">WAU {metrics.wau}</span>
+            </div>
+            <div className="flex items-end gap-0.5 h-32" aria-label="Daily active users chart">
+              {dau.map((d) => (
+                <div
+                  key={d.day}
+                  title={`${d.day}: ${d.dau}`}
+                  className="flex-1 bg-slate-700 rounded-t"
+                  style={{ height: `${Math.max(2, (d.dau / maxDau) * 100)}%` }}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">Active = swiped or sent a message that day.</p>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 rounded-lg border bg-white">

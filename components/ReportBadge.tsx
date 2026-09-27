@@ -5,10 +5,10 @@ interface ReportBadgeProps {
   value: string | null
 }
 
+// reports.priority CHECK: 'urgent' | 'normal' (auto-flagged messages are urgent).
 const priorityStyles: Record<string, string> = {
-  high: 'bg-red-100 text-red-700 border-red-200',
-  medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-  low: 'bg-gray-100 text-gray-600 border-gray-200',
+  urgent: 'bg-red-100 text-red-700 border-red-200',
+  normal: 'bg-gray-100 text-gray-600 border-gray-200',
 }
 
 const statusStyles: Record<string, string> = {
@@ -22,7 +22,7 @@ export function ReportBadge({ type, value }: ReportBadgeProps) {
   const normalized = value?.toLowerCase() ?? 'unknown'
   const styles =
     type === 'priority'
-      ? (priorityStyles[normalized] ?? priorityStyles.low)
+      ? (priorityStyles[normalized] ?? priorityStyles.normal)
       : (statusStyles[normalized] ?? statusStyles.dismissed)
 
   return (

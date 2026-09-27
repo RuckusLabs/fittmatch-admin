@@ -207,6 +207,64 @@ export type Database = {
           },
         ]
       }
+      cert_verifications: {
+        Row: {
+          cert_name: string
+          coach_id: string
+          created_at: string
+          file_path: string
+          id: string
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          cert_name: string
+          coach_id: string
+          created_at?: string
+          file_path: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          cert_name?: string
+          coach_id?: string
+          created_at?: string
+          file_path?: string
+          id?: string
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cert_verifications_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coach_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cert_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cert_verifications_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_profiles: {
         Row: {
           bio: string | null
@@ -218,6 +276,8 @@ export type Database = {
           location: unknown
           logo_url: string | null
           photos: Json
+          rating_avg: number | null
+          rating_count: number
           team_size_band: string | null
           updated_at: string | null
           views_count: number | null
@@ -233,6 +293,8 @@ export type Database = {
           location?: unknown
           logo_url?: string | null
           photos?: Json
+          rating_avg?: number | null
+          rating_count?: number
           team_size_band?: string | null
           updated_at?: string | null
           views_count?: number | null
@@ -248,6 +310,8 @@ export type Database = {
           location?: unknown
           logo_url?: string | null
           photos?: Json
+          rating_avg?: number | null
+          rating_count?: number
           team_size_band?: string | null
           updated_at?: string | null
           views_count?: number | null
@@ -304,11 +368,15 @@ export type Database = {
           photo_url: string | null
           photos: Json
           profile_strength_pct: number | null
+          rating_avg: number | null
+          rating_count: number
           right_swipes_received_count: number | null
           specialties: string[] | null
           title: string | null
           updated_at: string | null
+          verified_certs: string[]
           video_duration_seconds: number | null
+          video_url: string | null
           views_count: number | null
         }
         Insert: {
@@ -326,11 +394,15 @@ export type Database = {
           photo_url?: string | null
           photos?: Json
           profile_strength_pct?: number | null
+          rating_avg?: number | null
+          rating_count?: number
           right_swipes_received_count?: number | null
           specialties?: string[] | null
           title?: string | null
           updated_at?: string | null
+          verified_certs?: string[]
           video_duration_seconds?: number | null
+          video_url?: string | null
           views_count?: number | null
         }
         Update: {
@@ -348,11 +420,15 @@ export type Database = {
           photo_url?: string | null
           photos?: Json
           profile_strength_pct?: number | null
+          rating_avg?: number | null
+          rating_count?: number
           right_swipes_received_count?: number | null
           specialties?: string[] | null
           title?: string | null
           updated_at?: string | null
+          verified_certs?: string[]
           video_duration_seconds?: number | null
+          video_url?: string | null
           views_count?: number | null
         }
         Relationships: [
@@ -394,6 +470,8 @@ export type Database = {
           created_at: string | null
           days: string[] | null
           description: string | null
+          expires_at: string | null
+          expiry_reminded_at: string | null
           geog: unknown
           id: string
           location: unknown
@@ -419,6 +497,8 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          expires_at?: string | null
+          expiry_reminded_at?: string | null
           geog?: unknown
           id?: string
           location?: unknown
@@ -444,6 +524,8 @@ export type Database = {
           created_at?: string | null
           days?: string[] | null
           description?: string | null
+          expires_at?: string | null
+          expiry_reminded_at?: string | null
           geog?: unknown
           id?: string
           location?: unknown
@@ -614,27 +696,36 @@ export type Database = {
         Row: {
           body: string
           created_at: string | null
+          deleted_at: string | null
           id: string
           image_url: string | null
+          kind: string
           match_id: string
+          meta: Json | null
           read_at: string | null
           sender_id: string
         }
         Insert: {
           body: string
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           image_url?: string | null
+          kind?: string
           match_id: string
+          meta?: Json | null
           read_at?: string | null
           sender_id: string
         }
         Update: {
           body?: string
           created_at?: string | null
+          deleted_at?: string | null
           id?: string
           image_url?: string | null
+          kind?: string
           match_id?: string
+          meta?: Json | null
           read_at?: string | null
           sender_id?: string
         }
@@ -725,6 +816,7 @@ export type Database = {
           open_to_offers: boolean | null
           push_tokens: Json | null
           role: string
+          saved_search: Json | null
           search_radius_miles: number | null
           signup_device_fingerprint: string | null
           signup_ip: unknown
@@ -752,6 +844,7 @@ export type Database = {
           open_to_offers?: boolean | null
           push_tokens?: Json | null
           role: string
+          saved_search?: Json | null
           search_radius_miles?: number | null
           signup_device_fingerprint?: string | null
           signup_ip?: unknown
@@ -779,6 +872,7 @@ export type Database = {
           open_to_offers?: boolean | null
           push_tokens?: Json | null
           role?: string
+          saved_search?: Json | null
           search_radius_miles?: number | null
           signup_device_fingerprint?: string | null
           signup_ip?: unknown
@@ -853,6 +947,49 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      promo_redemptions: {
+        Row: {
+          id: string
+          promo_code_id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          promo_code_id: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          promo_code_id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promo_redemptions_promo_code_id_fkey"
+            columns: ["promo_code_id"]
+            isOneToOne: false
+            referencedRelation: "promo_codes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promo_redemptions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       rate_limit_violations: {
         Row: {
@@ -1004,6 +1141,68 @@ export type Database = {
           {
             foreignKeyName: "reports_resolved_by_fkey"
             columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          reviewee_id: string
+          reviewer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          reviewee_id?: string
+          reviewer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewee_id_fkey"
+            columns: ["reviewee_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
@@ -1478,12 +1677,23 @@ export type Database = {
             }
             Returns: string
           }
+      admin_metrics: { Args: { p_days?: number }; Returns: Json }
+      can_review: { Args: { p_reviewee: string }; Returns: boolean }
       coach_ids_near: {
         Args: { p_lat: number; p_lng: number; p_radius_miles: number }
         Returns: {
           id: string
         }[]
       }
+      coach_profile_is_complete: {
+        Args: { cp: Database["public"]["Tables"]["coach_profiles"]["Row"] }
+        Returns: boolean
+      }
+      coach_profile_strength: {
+        Args: { cp: Database["public"]["Tables"]["coach_profiles"]["Row"] }
+        Returns: number
+      }
+      delete_own_message: { Args: { p_message_id: string }; Returns: undefined }
       disablelongtransactions: { Args: never; Returns: string }
       dropgeometrycolumn:
         | {
@@ -1517,6 +1727,7 @@ export type Database = {
         | { Args: { table_name: string }; Returns: string }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_pending_matches: { Args: never; Returns: undefined }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {
         Args: { geom1: unknown; geom2: unknown }
@@ -1640,6 +1851,7 @@ export type Database = {
         }
         Returns: Json[]
       }
+      get_my_analytics: { Args: never; Returns: Json }
       get_my_profile: {
         Args: never
         Returns: {
@@ -1662,6 +1874,7 @@ export type Database = {
           open_to_offers: boolean | null
           push_tokens: Json | null
           role: string
+          saved_search: Json | null
           search_radius_miles: number | null
           signup_device_fingerprint: string | null
           signup_ip: unknown
@@ -1681,6 +1894,7 @@ export type Database = {
         Args: { p_tier: string; p_user: string }
         Returns: boolean
       }
+      increment_coach_view: { Args: { p_coach_id: string }; Returns: undefined }
       increment_daily_swipe: {
         Args: { p_date: string; p_limit: number; p_user_id: string }
         Returns: number
@@ -1694,6 +1908,7 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: never; Returns: boolean }
+      is_disposable_email: { Args: { p_email: string }; Returns: boolean }
       is_match_participant: { Args: { p_match_id: string }; Returns: boolean }
       is_privileged_caller: { Args: never; Returns: boolean }
       job_ids_near: {
@@ -1750,6 +1965,9 @@ export type Database = {
       }
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
+      process_listing_expiry: { Args: never; Returns: undefined }
+      redeem_promo_code: { Args: { p_code: string }; Returns: string }
+      refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       set_application_stage: {
         Args: {
           p_coach_id: string
@@ -2344,6 +2562,10 @@ export type Database = {
         Args: { geom: unknown; move: number; wrap: number }
         Returns: unknown
       }
+      submit_review: {
+        Args: { p_body?: string; p_rating: number; p_reviewee: string }
+        Returns: undefined
+      }
       unlockrows: { Args: { "": string }; Returns: number }
       updategeometrysrid: {
         Args: {
@@ -2355,6 +2577,7 @@ export type Database = {
         }
         Returns: string
       }
+      weekly_digest: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
