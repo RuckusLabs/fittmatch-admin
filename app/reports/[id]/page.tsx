@@ -96,7 +96,9 @@ export default async function ReportDetailPage({
                 </div>
               </div>
             ) : (
-              <p className="text-muted-foreground text-sm">Unknown reporter</p>
+              <p className="text-muted-foreground text-sm">
+                {report.details?.startsWith('Auto-flagged') ? 'System (automatic message screening)' : 'Unknown reporter'}
+              </p>
             )}
           </CardContent>
         </Card>

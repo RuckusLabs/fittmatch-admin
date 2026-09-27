@@ -137,7 +137,7 @@ export default async function ReportsPage({
                     </Link>
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">
-                    {report.reporter?.full_name ?? '—'}
+                    {report.reporter?.full_name ?? 'System'}
                   </td>
                   <td className="px-4 py-2.5 text-muted-foreground">
                     {report.reported?.full_name ?? '—'}

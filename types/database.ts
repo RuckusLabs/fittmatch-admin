@@ -368,6 +368,7 @@ export type Database = {
           updated_at: string | null
           verified_certs: string[]
           video_duration_seconds: number | null
+          video_url: string | null
           views_count: number | null
         }
         Insert: {
@@ -391,6 +392,7 @@ export type Database = {
           updated_at?: string | null
           verified_certs?: string[]
           video_duration_seconds?: number | null
+          video_url?: string | null
           views_count?: number | null
         }
         Update: {
@@ -414,6 +416,7 @@ export type Database = {
           updated_at?: string | null
           verified_certs?: string[]
           video_duration_seconds?: number | null
+          video_url?: string | null
           views_count?: number | null
         }
         Relationships: [
@@ -1766,6 +1769,7 @@ export type Database = {
         Returns: number
       }
       is_admin: { Args: never; Returns: boolean }
+      is_disposable_email: { Args: { p_email: string }; Returns: boolean }
       is_match_participant: { Args: { p_match_id: string }; Returns: boolean }
       is_privileged_caller: { Args: never; Returns: boolean }
       job_ids_near: {
