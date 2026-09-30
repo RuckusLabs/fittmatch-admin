@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { EditListingForm } from '@/components/EditListingForm'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Eye, Hourglass, Users } from 'lucide-react'
 import { PIPELINE_STAGES, PIPELINE_STAGE_LABEL } from '@/lib/labels'
 
 export default async function EditListingPage({
@@ -56,10 +56,10 @@ export default async function EditListingPage({
       </div>
 
       <div className="flex gap-6 text-sm text-muted-foreground border-y py-2">
-        <span>👁 {(listing as { views_count?: number | null }).views_count ?? 0} views</span>
-        <span>👤 {applicantCount ?? 0} applicants</span>
+        <span className="inline-flex items-center gap-1.5"><Eye size={14} /> {(listing as { views_count?: number | null }).views_count ?? 0} views</span>
+        <span className="inline-flex items-center gap-1.5"><Users size={14} /> {applicantCount ?? 0} applicants</span>
         {listing.expires_at && (
-          <span>⏳ {listing.status === 'live' ? 'closes' : 'closed'} {new Date(listing.expires_at).toLocaleDateString()}</span>
+          <span className="inline-flex items-center gap-1.5"><Hourglass size={14} /> {listing.status === 'live' ? 'closes' : 'closed'} {new Date(listing.expires_at).toLocaleDateString()}</span>
         )}
       </div>
 

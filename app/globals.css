@@ -3,27 +3,28 @@
 @tailwind utilities;
 
 @layer base {
+  /* FittMatch theme — same values as the mobile app's theme/index.ts. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 60 16.7% 97.6%;          /* paper   #FAFAF8 */
+    --foreground: 0 0% 5.1%;               /* ink     #0D0D0D */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 5.1%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 5.1%;
+    --primary: 11 65.3% 47.5%;             /* accent  #C8472A */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 45 15.4% 94.9%;           /* surface #F4F3F0 */
+    --secondary-foreground: 0 0% 22.7%;    /* ink2    #3A3A3A */
+    --muted: 45 15.4% 94.9%;
+    --muted-foreground: 0 0% 47.8%;        /* ink3    #7A7A7A */
+    --accent: 10 100% 96.5%;               /* accentl #FFF0ED — hover/selected wash */
+    --accent-foreground: 11 65.3% 47.5%;
+    --destructive: 5.6 63.4% 46.1%;        /* red     #C0392B */
+    --destructive-foreground: 0 0% 100%;
+    --border: 42.9 13.2% 89.6%;            /* border  #E8E6E1 */
+    --input: 42 10.4% 81.2%;               /* border2 #D4D1CA */
+    --ring: 11 65.3% 47.5%;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -54,6 +55,10 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  /* Headings in Playfair Display, like the app. */
+  h1, h2 {
+    @apply font-serif tracking-tight;
   }
 }

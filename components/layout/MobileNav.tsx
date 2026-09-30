@@ -54,11 +54,13 @@ export function MobileNav() {
       </Button>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="p-0 bg-slate-900 text-white w-60 border-slate-700">
+        <SheetContent side="left" className="p-0 bg-card w-60 border-border">
           <SheetTitle className="sr-only">Navigation</SheetTitle>
-          <div className="px-6 py-5 border-b border-slate-700">
-            <h1 className="font-bold text-lg tracking-tight text-white">FittMatch</h1>
-            <p className="text-xs text-slate-400 mt-0.5">Admin Console</p>
+          <div className="px-6 py-5 border-b border-border">
+            <p className="font-serif text-2xl font-bold tracking-tight leading-none">
+              Fitt<span className="text-primary">Match</span>
+            </p>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-1.5">Admin Console</p>
           </div>
           <nav className="flex-1 px-3 py-4 space-y-0.5">
             {navItems.map(({ href, label, icon: Icon }) => {
@@ -71,8 +73,8 @@ export function MobileNav() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-slate-700 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                      ? 'bg-accent text-primary'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                   )}
                 >
                   <Icon size={16} />

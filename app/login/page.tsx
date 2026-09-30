@@ -42,7 +42,10 @@ function LoginForm() {
   return (
     <Card className="w-full max-w-sm">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">FittMatch Admin</CardTitle>
+        <CardTitle className="font-serif text-3xl font-bold tracking-tight">
+          Fitt<span className="text-primary">Match</span>
+          <span className="block font-sans text-[11px] font-semibold uppercase tracking-widest text-muted-foreground mt-2">Admin Console</span>
+        </CardTitle>
         <CardDescription>
           Enter your email to receive a magic link
         </CardDescription>
