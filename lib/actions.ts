@@ -847,22 +847,29 @@ export async function broadcastAnnouncement(input: {
   if (error) return { error: error.message, recipients: 0, pushed: 0 }
   if (!users?.length) return { error: 'No users match that audience', recipients: 0, pushed: 0 }
 
+  // One id per broadcast, stored on every notification and sent in the push, so tapping the push
+  // opens this announcement in the app's notification centre.
+  const broadcastId = crypto.randomUUID()
   for (let i = 0; i < users.length; i += 500) {
     const { error: insErr } = await supabase.from('notifications').insert(
-      users.slice(i, i + 500).map((u) => ({ user_id: u.id, type: 'announcement', payload: { title, body } })),
+      users.slice(i, i + 500).map((u) => ({
+        user_id: u.id, type: 'announcement', payload: { title, body, broadcast_id: broadcastId },
+      })),
     )
     if (insErr) return { error: insErr.message, recipients: i, pushed: 0 }
   }
 
   let pushed = 0
   if (input.push) {
-    const tokens = users.flatMap((u) => (Array.isArray(u.push_tokens) ? (u.push_tokens as string[]) : []))
+    // A device can hold a token under more than one account (older app builds never released it on
+    // sign-out), so send each token once — otherwise that phone gets the broadcast twice.
+    const tokens = [...new Set(users.flatMap((u) => (Array.isArray(u.push_tokens) ? (u.push_tokens as string[]) : [])))]
     for (let i = 0; i < tokens.length; i += 100) {
       const chunk = tokens.slice(i, i + 100)
       const res = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(chunk.map((to) => ({ to, title, body, sound: 'default', data: { type: 'announcement' } }))),
+        body: JSON.stringify(chunk.map((to) => ({ to, title, body, sound: 'default', data: { type: 'announcement', broadcast_id: broadcastId } }))),
       }).catch(() => null)
       if (res?.ok) pushed += chunk.length
     }

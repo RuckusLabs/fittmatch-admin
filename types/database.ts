@@ -1968,6 +1968,7 @@ export type Database = {
       process_listing_expiry: { Args: never; Returns: undefined }
       redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
+      remove_push_token: { Args: { p_token: string }; Returns: undefined }
       set_application_stage: {
         Args: {
           p_coach_id: string
