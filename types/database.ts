@@ -271,6 +271,7 @@ export type Database = {
           company_name: string | null
           company_type: string | null
           created_at: string | null
+          extra_cities: Json
           id: string
           is_complete: boolean | null
           location: unknown
@@ -288,6 +289,7 @@ export type Database = {
           company_name?: string | null
           company_type?: string | null
           created_at?: string | null
+          extra_cities?: Json
           id: string
           is_complete?: boolean | null
           location?: unknown
@@ -305,6 +307,7 @@ export type Database = {
           company_name?: string | null
           company_type?: string | null
           created_at?: string | null
+          extra_cities?: Json
           id?: string
           is_complete?: boolean | null
           location?: unknown
@@ -466,21 +469,25 @@ export type Database = {
       job_listings: {
         Row: {
           boosted_until: string | null
+          city: string | null
           client_id: string
           created_at: string | null
           days: string[] | null
           description: string | null
           expires_at: string | null
           expiry_reminded_at: string | null
+          extra_cities: Json
           geog: unknown
           id: string
           location: unknown
           location_lat: number | null
           location_lng: number | null
           location_text: string | null
+          pay_hourly: number | null
           pay_max: number | null
           pay_min: number | null
           pay_negotiable: boolean | null
+          pay_type: string
           perks: string[] | null
           required_certs: string[] | null
           right_swipes_count: number | null
@@ -493,21 +500,25 @@ export type Database = {
         }
         Insert: {
           boosted_until?: string | null
+          city?: string | null
           client_id: string
           created_at?: string | null
           days?: string[] | null
           description?: string | null
           expires_at?: string | null
           expiry_reminded_at?: string | null
+          extra_cities?: Json
           geog?: unknown
           id?: string
           location?: unknown
           location_lat?: number | null
           location_lng?: number | null
           location_text?: string | null
+          pay_hourly?: number | null
           pay_max?: number | null
           pay_min?: number | null
           pay_negotiable?: boolean | null
+          pay_type?: string
           perks?: string[] | null
           required_certs?: string[] | null
           right_swipes_count?: number | null
@@ -520,21 +531,25 @@ export type Database = {
         }
         Update: {
           boosted_until?: string | null
+          city?: string | null
           client_id?: string
           created_at?: string | null
           days?: string[] | null
           description?: string | null
           expires_at?: string | null
           expiry_reminded_at?: string | null
+          extra_cities?: Json
           geog?: unknown
           id?: string
           location?: unknown
           location_lat?: number | null
           location_lng?: number | null
           location_text?: string | null
+          pay_hourly?: number | null
           pay_max?: number | null
           pay_min?: number | null
           pay_negotiable?: boolean | null
+          pay_type?: string
           perks?: string[] | null
           required_certs?: string[] | null
           right_swipes_count?: number | null
@@ -688,6 +703,59 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          match_id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          match_id: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          match_id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1209,6 +1277,54 @@ export type Database = {
           },
         ]
       }
+      saved_searches: {
+        Row: {
+          created_at: string
+          email_digest: boolean
+          filters: Json
+          id: string
+          last_digest_at: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_digest?: boolean
+          filters?: Json
+          id?: string
+          last_digest_at?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_digest?: boolean
+          filters?: Json
+          id?: string
+          last_digest_at?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_searches_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shortlist: {
         Row: {
           created_at: string | null
@@ -1678,6 +1794,10 @@ export type Database = {
             Returns: string
           }
       admin_metrics: { Args: { p_days?: number }; Returns: Json }
+      any_point_within: {
+        Args: { p_meters: number; p_point: unknown; p_points: Json }
+        Returns: boolean
+      }
       can_review: { Args: { p_reviewee: string }; Returns: boolean }
       coach_ids_near: {
         Args: { p_lat: number; p_lng: number; p_radius_miles: number }
@@ -1907,6 +2027,7 @@ export type Database = {
         Args: { p_limit: number; p_month: string; p_user_id: string }
         Returns: number
       }
+      invoke_weekly_digest: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       is_disposable_email: { Args: { p_email: string }; Returns: boolean }
       is_match_participant: { Args: { p_match_id: string }; Returns: boolean }
@@ -1925,6 +2046,17 @@ export type Database = {
         }[]
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      match_listings: {
+        Args: { p_match_id: string }
+        Returns: {
+          city: string
+          id: string
+          is_primary: boolean
+          liked_at: string
+          status: string
+          title: string
+        }[]
+      }
       populate_geometry_columns:
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
         | { Args: { use_typmod?: boolean }; Returns: string }
@@ -1969,6 +2101,22 @@ export type Database = {
       redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       remove_push_token: { Args: { p_token: string }; Returns: undefined }
+      saved_search_digest_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          email: string
+          full_name: string
+          role: string
+          searches: Json
+          user_id: string
+          want_email: boolean
+          want_inapp: boolean
+        }[]
+      }
+      saved_search_new_results: {
+        Args: { p_limit?: number; p_search_id: string; p_since: string }
+        Returns: Json
+      }
       set_application_stage: {
         Args: {
           p_coach_id: string
@@ -1980,6 +2128,10 @@ export type Database = {
       }
       set_match_status: {
         Args: { p_match_id: string; p_status: string }
+        Returns: undefined
+      }
+      set_message_reaction: {
+        Args: { p_emoji: string; p_message_id: string }
         Returns: undefined
       }
       st_3dclosestpoint: {
