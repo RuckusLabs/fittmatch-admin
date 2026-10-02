@@ -216,7 +216,8 @@ export async function updateListing(
     title?: string
     description?: string | null
     status?: string | null
-    pay_min?: number | null
+    pay_type?: string
+  pay_min?: number | null
     pay_max?: number | null
     pay_negotiable?: boolean | null
     role_type?: string | null
@@ -244,6 +245,7 @@ export async function createListing(data: {
   title: string
   description?: string | null
   status?: string | null
+  pay_type?: string
   pay_min?: number | null
   pay_max?: number | null
   pay_negotiable?: boolean | null

@@ -14,6 +14,7 @@ type Listing = {
   pay_min: number | null
   pay_max: number | null
   pay_negotiable: boolean | null
+  pay_type: string | null
   role_type: string | null
   boosted_until: string | null
 }
@@ -39,6 +40,12 @@ export function EditListingForm({ listing }: { listing: Listing }) {
 
     const payMinRaw = fd.get('pay_min') as string
     const payMaxRaw = fd.get('pay_max') as string
+    // Live listings need pay, matching the app's job form.
+    if ((fd.get('status') as string) === 'live' && !payMinRaw && !payMaxRaw) {
+      setError('Add a min or max pay before making the listing live.')
+      setLoading(false)
+      return
+    }
     const boostDate = fd.get('boosted_until') as string
 
     const result = await updateListing(listing.id, {
@@ -46,6 +53,7 @@ export function EditListingForm({ listing }: { listing: Listing }) {
       description: (fd.get('description') as string) || null,
       status: fd.get('status') as string,
       role_type: (fd.get('role_type') as string) || null,
+      pay_type: (fd.get('pay_type') as string) || 'hourly',
       pay_min: payMinRaw ? parseFloat(payMinRaw) : null,
       pay_max: payMaxRaw ? parseFloat(payMaxRaw) : null,
       pay_negotiable: fd.get('pay_negotiable') === 'on',
@@ -150,10 +158,19 @@ export function EditListingForm({ listing }: { listing: Listing }) {
           <CardTitle className="text-base">Compensation</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" htmlFor="pay_type">
+              Pay type
+            </label>
+            <select id="pay_type" name="pay_type" defaultValue={listing.pay_type ?? 'hourly'} className={inputClass}>
+              <option value="hourly">Hourly ($/hr)</option>
+              <option value="salary">Salary ($/yr)</option>
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="pay_min">
-                Min pay ($/hr)
+                Min pay ($)
               </label>
               <input
                 id="pay_min"
@@ -168,7 +185,7 @@ export function EditListingForm({ listing }: { listing: Listing }) {
             </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="pay_max">
-                Max pay ($/hr)
+                Max pay ($)
               </label>
               <input
                 id="pay_max"
