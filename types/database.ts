@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       admin_audit_log: {
@@ -1958,6 +1983,38 @@ export type Database = {
         }
         Returns: Json[]
       }
+      get_filtered_coach_deck: {
+        Args: {
+          p_days?: string[]
+          p_exclude?: string[]
+          p_experience?: string
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_radius_miles?: number
+          p_review_passed?: boolean
+          p_specialties?: string[]
+          p_times?: string[]
+        }
+        Returns: Json[]
+      }
+      get_filtered_job_deck: {
+        Args: {
+          p_days?: string[]
+          p_exclude?: string[]
+          p_facility?: string
+          p_lat?: number
+          p_limit?: number
+          p_lng?: number
+          p_pay_min?: number
+          p_pill?: string
+          p_radius_miles?: number
+          p_review_passed?: boolean
+          p_role_type?: string
+          p_times?: string[]
+        }
+        Returns: Json[]
+      }
       get_job_deck: {
         Args: {
           p_exclude?: string[]
@@ -2055,6 +2112,13 @@ export type Database = {
           liked_at: string
           status: string
           title: string
+        }[]
+      }
+      my_application_status: {
+        Args: { p_listing_id: string }
+        Returns: {
+          stage: string
+          stage_changed_at: string
         }[]
       }
       populate_geometry_columns:
@@ -2867,6 +2931,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

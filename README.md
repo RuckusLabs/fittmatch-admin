@@ -94,3 +94,10 @@ SUPABASE_SERVICE_ROLE_KEY
 ```
 
 After deploying, add the Vercel domain to Supabase → Authentication → URL Configuration → Redirect URLs.
+
+
+## October mobile feedback compatibility
+
+The mobile repository owns the `20261005*` migrations. Application stage transitions now create coach in-app notifications and server-authored `messages.kind = activity` timeline entries; notes remain private. Avoid issuing duplicate notifications from admin actions. Client free daily usage now includes Like and Pass. Existing Gift Pro and reset-usage actions remain compatible; Profile supports refresh after gifting.
+
+Database RPC types are synchronized from `../fittmatch/types/database.ts`. Review the mobile `docs/qa/2026-10-feedback.md` checklist for validation and deployment details.
