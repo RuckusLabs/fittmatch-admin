@@ -2075,10 +2075,27 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_my_unread_counts: {
+        Args: never
+        Returns: {
+          alert_count: number
+          message_count: number
+          total_count: number
+        }[]
+      }
       get_notification_badge_counts: {
         Args: { p_user_ids: string[] }
         Returns: {
           unread_count: number
+          user_id: string
+        }[]
+      }
+      get_unread_counts: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          alert_count: number
+          message_count: number
+          total_count: number
           user_id: string
         }[]
       }
