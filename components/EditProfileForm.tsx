@@ -212,11 +212,12 @@ export function EditProfileForm(props: Props) {
                   className={inputClass}
                 >
                   <option value="">— Not set —</option>
-                  <option value="gym">Gym</option>
-                  <option value="studio">Studio</option>
-                  <option value="corporate">Corporate Wellness</option>
-                  <option value="sports_team">Sports Team</option>
-                  <option value="other">Other</option>
+                  <option value="Commercial Gym">Commercial Gym</option>
+                  <option value="Boutique Studio">Boutique Studio</option>
+                  <option value="Corporate Wellness">Corporate Wellness</option>
+                  <option value="Sports Team">Sports Team</option>
+                  <option value="Independent">Personal trainer</option>
+                  {props.data.company_type && !['Commercial Gym', 'Boutique Studio', 'Corporate Wellness', 'Sports Team', 'Independent'].includes(props.data.company_type) && <option value={props.data.company_type}>{props.data.company_type}</option>}
                 </select>
               </div>
 

@@ -3,12 +3,17 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateListing } from '@/lib/actions'
+import { ListingLocationFields } from '@/components/ListingLocationFields'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 type Listing = {
   id: string
   title: string
+  city: string | null
+  location_text: string | null
+  location_lat: number | null
+  location_lng: number | null
   description: string | null
   status: string | null
   pay_min: number | null
@@ -50,6 +55,10 @@ export function EditListingForm({ listing }: { listing: Listing }) {
 
     const result = await updateListing(listing.id, {
       title: fd.get('title') as string,
+      city: String(fd.get('city') ?? '').trim() || null,
+      location_text: String(fd.get('location_text') ?? '').trim() || null,
+      location_lat: fd.get('location_lat') ? Number(fd.get('location_lat')) : null,
+      location_lng: fd.get('location_lng') ? Number(fd.get('location_lng')) : null,
       description: (fd.get('description') as string) || null,
       status: fd.get('status') as string,
       role_type: (fd.get('role_type') as string) || null,
@@ -118,6 +127,8 @@ export function EditListingForm({ listing }: { listing: Listing }) {
             />
           </div>
 
+          <ListingLocationFields {...listing} />
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="status">
@@ -139,15 +150,15 @@ export function EditListingForm({ listing }: { listing: Listing }) {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="role_type">
-                Role Type
+                Employment type
               </label>
-              <input
-                id="role_type"
-                name="role_type"
-                defaultValue={listing.role_type ?? ''}
-                placeholder="e.g. Personal Trainer"
-                className={inputClass}
-              />
+              <select id="role_type" name="role_type" className={inputClass} defaultValue={listing.role_type ?? ''}>
+                <option value="">Select employment type</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contractor</option>
+                {listing.role_type && !['Full-time', 'Part-time', 'Contract'].includes(listing.role_type) && <option value={listing.role_type}>{listing.role_type}</option>}
+              </select>
             </div>
           </div>
         </CardContent>

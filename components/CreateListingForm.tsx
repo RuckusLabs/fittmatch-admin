@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createListing } from '@/lib/actions'
+import { ListingLocationFields } from '@/components/ListingLocationFields'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -36,6 +37,10 @@ export function CreateListingForm({ clients }: { clients: ClientOption[] }) {
     const result = await createListing({
       client_id: fd.get('client_id') as string,
       title: fd.get('title') as string,
+      city: String(fd.get('city') ?? '').trim() || null,
+      location_text: String(fd.get('location_text') ?? '').trim() || null,
+      location_lat: fd.get('location_lat') ? Number(fd.get('location_lat')) : null,
+      location_lng: fd.get('location_lng') ? Number(fd.get('location_lng')) : null,
       description: (fd.get('description') as string) || null,
       status: fd.get('status') as string,
       role_type: (fd.get('role_type') as string) || null,
@@ -127,6 +132,8 @@ export function CreateListingForm({ clients }: { clients: ClientOption[] }) {
             />
           </div>
 
+          <ListingLocationFields />
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="status">
@@ -145,14 +152,14 @@ export function CreateListingForm({ clients }: { clients: ClientOption[] }) {
 
             <div className="space-y-1.5">
               <label className="text-sm font-medium" htmlFor="role_type">
-                Role Type
+                Employment type
               </label>
-              <input
-                id="role_type"
-                name="role_type"
-                placeholder="e.g. Personal Trainer"
-                className={inputClass}
-              />
+              <select id="role_type" name="role_type" className={inputClass}>
+                <option value="">Select employment type</option>
+                <option value="Full-time">Full-time</option>
+                <option value="Part-time">Part-time</option>
+                <option value="Contract">Contractor</option>
+              </select>
             </div>
           </div>
         </CardContent>

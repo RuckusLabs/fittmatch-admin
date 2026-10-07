@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       admin_audit_log: {
@@ -472,6 +447,39 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_job_tags: {
+        Row: {
+          listing_id: string
+          match_id: string
+          updated_at: string
+        }
+        Insert: {
+          listing_id: string
+          match_id: string
+          updated_at?: string
+        }
+        Update: {
+          listing_id?: string
+          match_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_job_tags_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_job_tags_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: true
+            referencedRelation: "matches"
             referencedColumns: ["id"]
           },
         ]
@@ -1993,6 +2001,7 @@ export type Database = {
           p_lng?: number
           p_radius_miles?: number
           p_review_passed?: boolean
+          p_search_cities?: Json
           p_specialties?: string[]
           p_times?: string[]
         }
@@ -2065,6 +2074,30 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_my_unread_counts: {
+        Args: never
+        Returns: {
+          alert_count: number
+          message_count: number
+          total_count: number
+        }[]
+      }
+      get_notification_badge_counts: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          unread_count: number
+          user_id: string
+        }[]
+      }
+      get_unread_counts: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          alert_count: number
+          message_count: number
+          total_count: number
+          user_id: string
+        }[]
       }
       gettransactionid: { Args: never; Returns: unknown }
       has_entitlement: {
@@ -2188,6 +2221,10 @@ export type Database = {
           p_notes?: string
           p_stage?: string
         }
+        Returns: undefined
+      }
+      set_conversation_job_tag: {
+        Args: { p_listing_id?: string; p_match_id: string }
         Returns: undefined
       }
       set_match_status: {
@@ -2931,9 +2968,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
