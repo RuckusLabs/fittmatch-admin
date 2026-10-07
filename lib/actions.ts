@@ -214,6 +214,10 @@ export async function updateListing(
   listingId: string,
   data: {
     title?: string
+    city?: string | null
+    location_text?: string | null
+    location_lat?: number | null
+    location_lng?: number | null
     description?: string | null
     status?: string | null
     pay_type?: string
@@ -226,6 +230,7 @@ export async function updateListing(
 ): Promise<{ error: string | null }> {
   const adminId = await requireAdmin(MODERATORS)
   const serviceClient = createServiceClient()
+  if (data.city && (data.location_lat == null || data.location_lng == null || !Number.isFinite(data.location_lat) || !Number.isFinite(data.location_lng) || Math.abs(data.location_lat) > 90 || Math.abs(data.location_lng) > 180)) return { error: 'Select a city from the search results before saving.' }
 
   const { error } = await serviceClient
     .from('job_listings')
@@ -243,6 +248,10 @@ export async function updateListing(
 export async function createListing(data: {
   client_id: string
   title: string
+  city?: string | null
+  location_text?: string | null
+  location_lat?: number | null
+  location_lng?: number | null
   description?: string | null
   status?: string | null
   pay_type?: string
@@ -253,6 +262,7 @@ export async function createListing(data: {
 }): Promise<{ error: string | null; listingId: string | null }> {
   const adminId = await requireAdmin(MODERATORS)
   const serviceClient = createServiceClient()
+  if (data.city && (data.location_lat == null || data.location_lng == null || !Number.isFinite(data.location_lat) || !Number.isFinite(data.location_lng) || Math.abs(data.location_lat) > 90 || Math.abs(data.location_lng) > 180)) return { error: 'Select a city from the search results before saving.', listingId: null }
 
   const { data: listing, error } = await serviceClient
     .from('job_listings')

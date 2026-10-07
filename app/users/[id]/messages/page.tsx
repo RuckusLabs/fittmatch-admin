@@ -24,7 +24,7 @@ export default async function UserMessagesPage({
     supabase
       .from('matches')
       .select(
-        'id, status, created_at, coach:coach_profiles(id, profiles(full_name)), client:client_profiles(id, profiles(full_name, email))'
+        'id, status, created_at, conversation_job_tags(listing_id, job_listings(title)), coach:coach_profiles(id, profiles(full_name)), client:client_profiles(id, profiles(full_name, email))'
       )
       .or(`coach_id.eq.${id},client_id.eq.${id}`)
       .order('created_at', { ascending: false }),
@@ -89,6 +89,7 @@ export default async function UserMessagesPage({
               className={isFocused ? 'ring-2 ring-primary' : undefined}
             >
               <CardHeader className="pb-2">
+                {match.conversation_job_tags?.job_listings?.title && <p className="text-xs text-muted-foreground">Client’s private job tag: {match.conversation_job_tags.job_listings.title}</p>}
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-medium">
                     {coachName} ↔ {clientName}

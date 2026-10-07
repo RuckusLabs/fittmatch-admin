@@ -101,3 +101,7 @@ After deploying, add the Vercel domain to Supabase → Authentication → URL Co
 The mobile repository owns the `20261005*` migrations. Application stage transitions now create coach in-app notifications and server-authored `messages.kind = activity` timeline entries; notes remain private. Avoid issuing duplicate notifications from admin actions. Client free daily usage now includes Like and Pass. Existing Gift Pro and reset-usage actions remain compatible; Profile supports refresh after gifting.
 
 Database RPC types are synchronized from `../fittmatch/types/database.ts`. Review the mobile `docs/qa/2026-10-feedback.md` checklist for validation and deployment details.
+
+## October 7 feedback
+
+Job forms now offer the app's employment types and a city search that saves location coordinates, so admin-created jobs participate in radius searches. Facility labels include Personal trainer (stored as Independent for existing app compatibility). Message moderation shows the client's private recruiting job tag; broadcast guidance describes the home notification bell badge. The mobile repository's `20261007000000_search_cities.sql` and `20261007000100_conversation_job_tags.sql` migrations and updated `get_matches` are deployed. See `../fittmatch/docs/qa/2026-10-07-feedback.md` for validation.

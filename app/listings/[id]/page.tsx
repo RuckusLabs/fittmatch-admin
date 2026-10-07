@@ -17,7 +17,7 @@ export default async function EditListingPage({
     supabase
       .from('job_listings')
       .select(
-        'id, title, description, status, pay_type, pay_min, pay_max, pay_negotiable, role_type, boosted_until, views_count, expires_at, client:client_profiles!job_listings_client_id_fkey(company_name)'
+        'id, title, city, location_text, location_lat, location_lng, description, status, pay_type, pay_min, pay_max, pay_negotiable, role_type, boosted_until, views_count, expires_at, client:client_profiles!job_listings_client_id_fkey(company_name)'
       )
       .eq('id', id)
       .single(),
