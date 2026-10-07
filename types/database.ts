@@ -2075,6 +2075,13 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_notification_badge_counts: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          unread_count: number
+          user_id: string
+        }[]
+      }
       gettransactionid: { Args: never; Returns: unknown }
       has_entitlement: {
         Args: { p_tier: string; p_user: string }

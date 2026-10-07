@@ -873,15 +873,29 @@ export async function broadcastAnnouncement(input: {
 
   let pushed = 0
   if (input.push) {
+    const badges = new Map<string, number>()
+    for (let i = 0; i < users.length; i += 500) {
+      const { data: counts, error: countError } = await supabase.rpc('get_notification_badge_counts', {
+        p_user_ids: users.slice(i, i + 500).map((u) => u.id),
+      })
+      if (countError) console.error('broadcast badge counts', countError)
+      else for (const row of counts ?? []) badges.set(row.user_id, Number(row.unread_count))
+    }
     // A device can hold a token under more than one account (older app builds never released it on
     // sign-out), so send each token once — otherwise that phone gets the broadcast twice.
-    const tokens = [...new Set(users.flatMap((u) => (Array.isArray(u.push_tokens) ? (u.push_tokens as string[]) : [])))]
-    for (let i = 0; i < tokens.length; i += 100) {
-      const chunk = tokens.slice(i, i + 100)
+    const messages = new Map<string, { to: string; badge?: number }>()
+    for (const user of users) {
+      for (const to of Array.isArray(user.push_tokens) ? user.push_tokens as string[] : []) {
+        messages.set(to, { to, ...(badges.has(user.id) ? { badge: badges.get(user.id)! } : {}) })
+      }
+    }
+    const recipients = [...messages.values()]
+    for (let i = 0; i < recipients.length; i += 100) {
+      const chunk = recipients.slice(i, i + 100)
       const res = await fetch('https://exp.host/--/api/v2/push/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(chunk.map((to) => ({ to, title, body, sound: 'default', data: { type: 'announcement', broadcast_id: broadcastId } }))),
+        body: JSON.stringify(chunk.map((recipient) => ({ ...recipient, title, body, sound: 'default', data: { type: 'announcement', broadcast_id: broadcastId } }))),
       }).catch(() => null)
       if (res?.ok) pushed += chunk.length
     }
