@@ -6,6 +6,7 @@ import { revalidatePath } from 'next/cache'
 import { createServiceClient } from '@/lib/supabase-server'
 import type { Database } from '@/types/database'
 import { chatMediaPath } from '@/lib/labels'
+import { removeUserMedia } from '@/lib/account-media'
 
 type AdminRole = 'admin' | 'moderator' | 'support'
 
@@ -461,6 +462,14 @@ export async function deleteUser(
   const adminId = await requireAdmin(ADMIN_ONLY)
   const serviceClient = createServiceClient()
 
+  // Storage is not part of the auth/profile FK cascade. Keep the account and match
+  // rows available if cleanup fails so an administrator can safely retry.
+  try {
+    await removeUserMedia(serviceClient, userId)
+  } catch (error) {
+    return { error: `Could not remove uploaded files: ${error instanceof Error ? error.message : 'Please retry account deletion.'}` }
+  }
+
   const { error } = await serviceClient.auth.admin.deleteUser(userId)
   if (error) return { error: error.message }
 
@@ -583,6 +592,41 @@ export async function resetDailySwipes(userId: string): Promise<{ error: string 
   if (error) return { error: error.message }
 
   await logAudit(adminId, 'reset_daily_swipes', 'user', userId, { date: today })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+// Beta approval is independent of paid billing and only administrators can grant it.
+export async function grantBetaAccess(userId: string): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const service = createServiceClient()
+  const { data: profile, error: profileError } = await service.from('profiles')
+    .select('role, is_banned').eq('id', userId).single()
+  if (profileError) return { error: profileError.message }
+  if (!profile || !['coach', 'client'].includes(profile.role) || profile.is_banned) {
+    return { error: 'Only an active coach or client account can receive beta access.' }
+  }
+  const now = new Date()
+  const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { error } = await service.from('beta_access').upsert({
+    user_id: userId, granted_by: adminId, granted_at: now.toISOString(),
+    expires_at: expiresAt, revoked_at: null,
+  }, { onConflict: 'user_id' })
+  if (error) return { error: error.message }
+  await logAudit(adminId, 'grant_beta_access', 'user', userId, { days: 7, expires_at: expiresAt })
+  revalidatePath(`/users/${userId}`)
+  return { error: null }
+}
+
+export async function revokeBetaAccess(userId: string): Promise<{ error: string | null }> {
+  const adminId = await requireAdmin(ADMIN_ONLY)
+  const service = createServiceClient()
+  const { data, error } = await service.from('beta_access')
+    .update({ revoked_at: new Date().toISOString() }).eq('user_id', userId)
+    .is('revoked_at', null).select('user_id')
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'This account has no beta grant to revoke.' }
+  await logAudit(adminId, 'revoke_beta_access', 'user', userId, {})
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }

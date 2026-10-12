@@ -160,6 +160,59 @@ export type Database = {
           },
         ]
       }
+      beta_access: {
+        Row: {
+          expires_at: string
+          granted_at: string
+          granted_by: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blocks: {
         Row: {
           blocked_id: string
@@ -2038,6 +2091,10 @@ export type Database = {
         Returns: Json[]
       }
       get_my_analytics: { Args: never; Returns: Json }
+      get_my_beta_access: {
+        Args: never
+        Returns: { expires_at: string }[]
+      }
       get_my_profile: {
         Args: never
         Returns: {
