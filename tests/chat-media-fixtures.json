@@ -1,0 +1,219 @@
+{
+  "baseUrl": "https://media-fixture.supabase.co",
+  "matchId": "11111111-1111-4111-8111-111111111111",
+  "senderId": "22222222-2222-4222-8222-222222222222",
+  "cases": [
+    {
+      "name": "current generated name",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg"
+    },
+    {
+      "name": "legacy timestamp name",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1700000000000.jpeg",
+      "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1700000000000.jpeg"
+    },
+    {
+      "name": "nested safe name",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/legacy/portrait.png",
+      "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/legacy/portrait.png"
+    },
+    {
+      "name": "encoded safe filename",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/portrait%20one.png",
+      "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/portrait one.png"
+    },
+    {
+      "name": "filename with internal dots",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/portrait..png",
+      "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/portrait..png"
+    },
+    {
+      "name": "malformed escape",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%",
+      "path": null
+    },
+    {
+      "name": "malformed UTF8",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%C0%AF",
+      "path": null
+    },
+    {
+      "name": "short escape",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%2",
+      "path": null
+    },
+    {
+      "name": "dot traversal",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/../other.png",
+      "path": null
+    },
+    {
+      "name": "encoded dot traversal",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/%2e%2e/other.png",
+      "path": null
+    },
+    {
+      "name": "encoded slash",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%2Fother.png",
+      "path": null
+    },
+    {
+      "name": "encoded backslash",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%5cother.png",
+      "path": null
+    },
+    {
+      "name": "raw backslash",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg\\other.png",
+      "path": null
+    },
+    {
+      "name": "double encoded traversal",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/%252e%252e/other.png",
+      "path": null
+    },
+    {
+      "name": "embedded percent",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%25",
+      "path": null
+    },
+    {
+      "name": "null byte",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%00",
+      "path": null
+    },
+    {
+      "name": "control byte",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%1f",
+      "path": null
+    },
+    {
+      "name": "DEL byte",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%7f",
+      "path": null
+    },
+    {
+      "name": "raw newline",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg\n",
+      "path": null
+    },
+    {
+      "name": "query token",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg?token=ignored",
+      "path": null
+    },
+    {
+      "name": "hash",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg#ignored",
+      "path": null
+    },
+    {
+      "name": "encoded query",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%3fignored",
+      "path": null
+    },
+    {
+      "name": "encoded hash",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg%23ignored",
+      "path": null
+    },
+    {
+      "name": "empty filename",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/",
+      "path": null
+    },
+    {
+      "name": "empty nested segment",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222//one.png",
+      "path": null
+    },
+    {
+      "name": "missing filename",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222",
+      "path": null
+    },
+    {
+      "name": "malformed match folder",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/match/22222222-2222-4222-8222-222222222222/one.png",
+      "path": null
+    },
+    {
+      "name": "malformed sender folder",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/sender/one.png",
+      "path": null
+    },
+    {
+      "name": "different match",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/22222222-2222-4222-8222-222222222222/22222222-2222-4222-8222-222222222222/one.png",
+      "path": null
+    },
+    {
+      "name": "different sender",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/11111111-1111-4111-8111-111111111111/one.png",
+      "path": null
+    },
+    {
+      "name": "external marker",
+      "value": "https://outside.invalid/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "external full prefix",
+      "value": "https://outside.invalid/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "host suffix",
+      "value": "https://media-fixture.supabase.co.outside.invalid/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "credential authority",
+      "value": "https://media-fixture.supabase.co@outside.invalid/storage/v1/object/public/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "signed legacy URL",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/sign/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg?token=x",
+      "path": null
+    },
+    {
+      "name": "wrong bucket",
+      "value": "https://media-fixture.supabase.co/storage/v1/object/public/profile-photos/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "raw object path",
+      "value": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "local file",
+      "value": "file:///tmp/photo.jpg",
+      "path": null
+    },
+    {
+      "name": "relative marker",
+      "value": "/chat-media/11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg",
+      "path": null
+    },
+    {
+      "name": "empty value",
+      "value": "",
+      "path": null
+    },
+    {
+      "name": "null value",
+      "value": null,
+      "path": null
+    },
+    {
+      "name": "object value",
+      "value": {
+        "path": "11111111-1111-4111-8111-111111111111/22222222-2222-4222-8222-222222222222/1770000000000-1-random.jpg"
+      },
+      "path": null
+    }
+  ]
+}

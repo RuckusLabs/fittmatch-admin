@@ -46,7 +46,7 @@ export default async function UserMessagesPage({
         ).data ?? []
 
   // chat-media is a private bucket — sign every image for this page view.
-  const imagePaths = messages.map((m) => (m.image_url ? chatMediaPath(m.image_url) : null)).filter((p): p is string => !!p)
+  const imagePaths = [...new Set(messages.map((m) => (m.image_url ? chatMediaPath(m.image_url, { matchId: m.match_id, senderId: m.sender_id }) : null)).filter((p): p is string => !!p))]
   const signedByPath = new Map<string, string>()
   if (imagePaths.length) {
     const { data: signed } = await supabase.storage.from('chat-media').createSignedUrls(imagePaths, 60 * 10)
@@ -124,7 +124,7 @@ export default async function UserMessagesPage({
                             }`}
                           >
                             {msg.image_url && (() => {
-                              const path = chatMediaPath(msg.image_url)
+                              const path = chatMediaPath(msg.image_url, { matchId: msg.match_id, senderId: msg.sender_id })
                               const src = path ? signedByPath.get(path) : undefined
                               return src ? (
                                 <a href={src} target="_blank" rel="noreferrer">

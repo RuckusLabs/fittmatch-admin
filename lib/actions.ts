@@ -746,23 +746,28 @@ export async function removeMessageMedia(messageId: string): Promise<{ error: st
 
   const { data: message, error: fetchError } = await serviceClient
     .from('messages')
-    .select('id, match_id, image_url')
+    .select('id, match_id, sender_id, image_url')
     .eq('id', messageId)
     .single()
   if (fetchError) return { error: fetchError.message }
   if (!message?.image_url) return { error: null }
 
-  const path = chatMediaPath(message.image_url)
+  // Invalid historical identifiers can be cleared, but can never authorize a Storage delete.
+  const path = chatMediaPath(message.image_url, { matchId: message.match_id, senderId: message.sender_id })
   if (path) {
     const { error: storageError } = await serviceClient.storage.from('chat-media').remove([path])
     if (storageError) return { error: storageError.message }
   }
 
-  const { error } = await serviceClient
+  const { data: cleared, error } = await serviceClient
     .from('messages')
     .update({ image_url: null })
     .eq('id', messageId)
+    .eq('image_url', message.image_url)
+    .select('id')
+    .maybeSingle()
   if (error) return { error: error.message }
+  if (!cleared) return { error: 'Attachment changed. Refresh and try again.' }
 
   await logAudit(adminId, 'remove_message_media', 'message', messageId, { match_id: message.match_id, path })
   revalidatePath('/', 'layout')
