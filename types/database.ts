@@ -849,6 +849,8 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          client_message_id: string | null
+          client_request_hash: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -861,6 +863,8 @@ export type Database = {
         }
         Insert: {
           body: string
+          client_message_id?: string | null
+          client_request_hash?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -873,6 +877,8 @@ export type Database = {
         }
         Update: {
           body?: string
+          client_message_id?: string | null
+          client_request_hash?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -1591,27 +1597,33 @@ export type Database = {
       swipes: {
         Row: {
           created_at: string | null
+          decision_revision: number
           direction: string
           id: string
           is_super: boolean
+          pending_notification_type: string | null
           swiper_id: string
           target_coach_id: string | null
           target_listing_id: string | null
         }
         Insert: {
           created_at?: string | null
+          decision_revision?: number
           direction: string
           id?: string
           is_super?: boolean
+          pending_notification_type?: string | null
           swiper_id: string
           target_coach_id?: string | null
           target_listing_id?: string | null
         }
         Update: {
           created_at?: string | null
+          decision_revision?: number
           direction?: string
           id?: string
           is_super?: boolean
+          pending_notification_type?: string | null
           swiper_id?: string
           target_coach_id?: string | null
           target_listing_id?: string | null
@@ -2176,6 +2188,19 @@ export type Database = {
         Args: { p_limit: number; p_month: string; p_user_id: string }
         Returns: number
       }
+      insert_message_once: {
+        Args: {
+          p_body: string
+          p_client_message_id: string
+          p_image_url: string
+          p_kind: string
+          p_match_id: string
+          p_meta: Json
+          p_request_hash: string
+          p_sender_id: string
+        }
+        Returns: Json
+      }
       invoke_weekly_digest: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       is_disposable_email: { Args: { p_email: string }; Returns: boolean }
@@ -2255,9 +2280,32 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       process_listing_expiry: { Args: never; Returns: undefined }
+      record_swipe_decision: {
+        Args: {
+          p_direction: string
+          p_is_super?: boolean
+          p_target_coach_id: string
+          p_target_listing_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       remove_push_token: { Args: { p_token: string }; Returns: undefined }
+      resolve_swipe_decision: {
+        Args: {
+          p_client_id: string
+          p_coach_id: string
+          p_create_pending: boolean
+          p_listing_id: string
+          p_mutual: boolean
+          p_pending_side: string
+          p_revision: number
+          p_swipe_id: string
+        }
+        Returns: Json
+      }
       resolve_swipe_match: {
         Args: {
           p_client_id: string
