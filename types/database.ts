@@ -1932,6 +1932,10 @@ export type Database = {
       }
     }
     Functions: {
+      get_profile_share_slug: {
+        Args: { p_profile_id: string; p_type: string }
+        Returns: string | null
+      }
       _postgis_deprecate: {
         Args: { newname: string; oldname: string; version: string }
         Returns: undefined
