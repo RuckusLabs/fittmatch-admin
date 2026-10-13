@@ -2093,7 +2093,9 @@ export type Database = {
       get_my_analytics: { Args: never; Returns: Json }
       get_my_beta_access: {
         Args: never
-        Returns: { expires_at: string }[]
+        Returns: {
+          expires_at: string
+        }[]
       }
       get_my_profile: {
         Args: never
@@ -2193,6 +2195,7 @@ export type Database = {
         }[]
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_match_read: { Args: { p_match_id: string }; Returns: Json }
       match_listings: {
         Args: { p_match_id: string }
         Returns: {
@@ -2255,6 +2258,17 @@ export type Database = {
       redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       remove_push_token: { Args: { p_token: string }; Returns: undefined }
+      resolve_swipe_match: {
+        Args: {
+          p_client_id: string
+          p_coach_id: string
+          p_create_pending: boolean
+          p_listing_id: string
+          p_mutual: boolean
+          p_pending_side: string
+        }
+        Returns: Json
+      }
       saved_search_digest_batch: {
         Args: { p_limit?: number }
         Returns: {
