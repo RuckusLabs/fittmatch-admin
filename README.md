@@ -5,7 +5,7 @@ Internal moderation and operations dashboard for the FittMatch platform.
 ## Stack
 
 - **Framework**: Next.js 15 (App Router, server components, server actions)
-- **Auth**: Supabase Auth — magic link + middleware admin guard
+- **Auth**: Supabase Auth — eight-digit email code + middleware admin guard
 - **Database**: Supabase (service role client, server-only)
 - **UI**: shadcn/ui + Tailwind CSS
 
@@ -40,7 +40,7 @@ Copy `.env.local.example` → `.env.local` and fill in the three Supabase keys.
 
 ## Adding the first admin
 
-The first admin can't be granted through the UI (you need an admin to grant admin). Run this once in the Supabase SQL Editor, using the UUID of a user who has already signed in via magic link:
+The first admin can't be granted through the UI (you need an admin to grant admin). Run this once in the Supabase SQL Editor, using the UUID of a user who has already signed in via email code:
 
 ```sql
 INSERT INTO profiles (id, email, role)
@@ -93,7 +93,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 ```
 
-After deploying, add the Vercel domain to Supabase → Authentication → URL Configuration → Redirect URLs.
+Admin login uses the shared eight-digit email-code template. Enter the code on `/login`; codes expire after ten minutes and can be resent after one minute. Login only accepts existing accounts, and middleware checks membership in `admin_users` before granting dashboard access.
 
 
 ## October mobile feedback compatibility

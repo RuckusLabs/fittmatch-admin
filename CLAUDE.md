@@ -20,7 +20,8 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 
 - Middleware (`middleware.ts`) guards all routes except `/login` and `/auth/callback`
 - Uses anon key SSR client for `auth.getUser()`, service role client for `admin_users` lookup
-- Magic link → `/auth/callback` → exchanges code → redirects to `/`
+- Email code → enter eight-digit OTP on `/login` → `verifyOtp` establishes browser session → full navigation to `/` for middleware admin guard
+- Shared templates send codes only; login never creates users. Resend cooldown is 60 seconds.
 - `x-admin-role` header injected by middleware, read by root layout to show/hide sidebar
 
 ## Server actions (`lib/actions.ts`)
