@@ -17,8 +17,8 @@ const client = { async rpc(name, args) {
 } }
 const profile = { id: 'user-id', role: 'coach', is_banned: false, open_to_offers: true, coach_profiles: { is_complete: true }, client_profiles: { is_complete: true } }
 ;(async () => {
-  assert.equal((await getPublicProfileLink(client, profile)).url, 'https://fittmatch.fit/p/coach/rachel-green-1001')
-  assert.equal((await getPublicProfileLink(client, { ...profile, role: 'client', open_to_offers: false })).url, 'https://fittmatch.fit/p/client/rachel-green-1001')
+  assert.equal((await getPublicProfileLink(client, profile)).url, 'https://fittmatch.fit/p/coach/?id=rachel-green-1001')
+  assert.equal((await getPublicProfileLink(client, { ...profile, role: 'client', open_to_offers: false })).url, 'https://fittmatch.fit/p/client/?id=rachel-green-1001')
   for (const patch of [{ open_to_offers: false }, { open_to_offers: null }, { open_to_offers: undefined }, { is_banned: true }, { coach_profiles: null }, { coach_profiles: { is_complete: false } }, { role: 'unexpected' }]) {
     const before = calls
     const link = await getPublicProfileLink(client, { ...profile, ...patch })

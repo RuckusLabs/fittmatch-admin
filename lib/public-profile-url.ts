@@ -29,7 +29,7 @@ export async function getPublicProfileLink(
     if (error || typeof data !== 'string' || data.length > 80 || !/^[a-z0-9]+(?:-[a-z0-9]+)*-[1-9][0-9]*$/.test(data)) {
       return { url: null, message: 'Public profile URL unavailable' }
     }
-    return { url: `https://fittmatch.fit/p/${profile.role}/${data}`, message: null }
+    return { url: `https://fittmatch.fit/p/${profile.role}/?id=${encodeURIComponent(data)}`, message: null }
   } catch {
     return { url: null, message: 'Public profile URL unavailable' }
   }
