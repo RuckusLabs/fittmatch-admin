@@ -60,7 +60,7 @@ From the **Users** screen you can:
 
 - **Search** by name or email, filter by role (coach / client) and status (active / banned)
 - **Paginate** — 50 users per page via `?page=` searchParam; all active filters are preserved across page navigation
-- **Create users** — `/users/new` creates a coach or client account via `auth.admin.createUser`. For client accounts you can optionally set company name and type at creation time. The user receives a magic-link email to activate their account.
+- **Create users** — `/users/new` creates a coach or client account via `auth.admin.createUser`. For client accounts you can optionally set company name and type at creation time. This creates a confirmed account; users then sign in through the mobile app. Creating an account does not send an invitation or email.
 - **View a user** — metrics (swipes, matches, messages), reports against them, subscription status, login/auth info (last sign-in, email confirmed date, device fingerprint), and profile photos
 - **Edit profile** — `/users/[id]/edit` lets you update a coach's bio, title, specialties, certifications, experience level, and open-to-offers toggle, or a client's company name, type, bio, website, and team size
 - **Ban / unban** — with a reason; logged to the audit log
@@ -71,7 +71,7 @@ From the **Users** screen you can:
 - **Toggle profile visibility** — "Profile visible in deck" toggle on the coach/client card overrides `is_complete` directly
 - **View photos** — photo gallery with click-to-expand lightbox dialog
 - **View messages** — `/users/[id]/messages` shows all conversations across all matches in a chat-bubble view; deep-link to a specific match with `?matchId=`
-- **Delete user** — permanent account deletion via `auth.admin.deleteUser`; requires typing the user's email to confirm; cascades to profile, matches, and messages
+- **Delete user** — retires new writes, removes uploaded media, then permanently deletes the account via `auth.admin.deleteUser`; requires typing the user's email to confirm; cascades to profile, matches, and messages
 
 ## Listing management
 

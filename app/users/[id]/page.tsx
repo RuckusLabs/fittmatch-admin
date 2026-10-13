@@ -47,6 +47,7 @@ export default async function UserDetailPage({
     { data: blocksReceived },
     { data: superLikeRow },
     { data: betaAccess, error: betaAccessError },
+    { data: adminAccess },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -113,6 +114,7 @@ export default async function UserDetailPage({
       .eq('month', new Date().toISOString().slice(0, 7))
       .maybeSingle(),
     supabase.from('beta_access').select('expires_at, revoked_at').eq('user_id', id).maybeSingle(),
+    supabase.from('admin_access').select('expires_at, revoked_at').eq('user_id', id).maybeSingle(),
   ])
 
   if (!profile) notFound()
@@ -429,8 +431,8 @@ export default async function UserDetailPage({
           <GiftProPanel
             userId={id}
             role="client"
-            currentPeriodEnd={subscription?.current_period_end ?? null}
-            subStatus={subscription?.status ?? null}
+            currentPeriodEnd={adminAccess?.expires_at ?? null}
+            subStatus={adminAccess && !adminAccess.revoked_at ? 'active' : null}
           />
         </div>
       )}
@@ -444,8 +446,8 @@ export default async function UserDetailPage({
           <GiftProPanel
             userId={id}
             role="coach"
-            currentPeriodEnd={subscription?.current_period_end ?? null}
-            subStatus={subscription?.status ?? null}
+            currentPeriodEnd={adminAccess?.expires_at ?? null}
+            subStatus={adminAccess && !adminAccess.revoked_at ? 'active' : null}
           />
         </div>
       )}

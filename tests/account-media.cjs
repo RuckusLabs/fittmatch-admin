@@ -41,6 +41,7 @@ async function main() {
   // Execute the real server action with authorization/storage/auth boundaries mocked.
   const calls=[];let storageFailure=false,authorized=true,deleteFailure=false;
   const service = {
+    rpc: async name => {assert.equal(name,'begin_account_deletion');calls.push('retire');return {error:null}},
     from: table => table==='admin_users'?{select(){return this},eq(){return this},maybeSingle:async()=>({data:{role:authorized?'admin':'support'}})}:
       { insert:async()=>{calls.push('audit');return {error:null}} },
     auth:{admin:{deleteUser:async()=>{calls.push('delete');return {error:deleteFailure?{message:'Auth failed'}:null}}}},
@@ -55,9 +56,9 @@ async function main() {
     '@/lib/supabase-server':{createServiceClient:()=>service},
     '@/lib/account-media':{removeUserMedia:async()=>{calls.push('cleanup');if(storageFailure)throw new Error('Storage failed')}},
   }[name]??{}));
-  let result=await tested.deleteUser('person','qa@example.invalid');assert.equal(result.error,null);assert.deepEqual(calls,['cleanup','delete','audit','refresh']);
-  calls.length=0;storageFailure=true;result=await tested.deleteUser('person','qa@example.invalid');assert.match(result.error,/Storage failed/);assert.deepEqual(calls,['cleanup']);
-  calls.length=0;storageFailure=false;deleteFailure=true;result=await tested.deleteUser('person','qa@example.invalid');assert.equal(result.error,'Auth failed');assert.deepEqual(calls,['cleanup','delete']);
+  let result=await tested.deleteUser('person','qa@example.invalid');assert.equal(result.error,null);assert.deepEqual(calls,['retire','cleanup','delete','audit','refresh']);
+  calls.length=0;storageFailure=true;result=await tested.deleteUser('person','qa@example.invalid');assert.match(result.error,/Storage failed/);assert.deepEqual(calls,['retire','cleanup']);
+  calls.length=0;storageFailure=false;deleteFailure=true;result=await tested.deleteUser('person','qa@example.invalid');assert.equal(result.error,'Auth failed');assert.deepEqual(calls,['retire','cleanup','delete']);
   calls.length=0;authorized=false;await assert.rejects(tested.deleteUser('person','qa@example.invalid'),/Not authorized/);assert.deepEqual(calls,[]);
   console.log('PASS: recursive/batched account media cleanup, match pagination, unrelated media preserved, admin authorization and failure ordering');
 }

@@ -1,3 +1,4 @@
+import { validCertificatePath } from '@/lib/certificate-proof'
 import Link from 'next/link'
 import { createServiceClient } from '@/lib/supabase-server'
 import { Card, CardContent } from '@/components/ui/card'
@@ -20,24 +21,27 @@ const TABS = ['pending', 'approved', 'rejected'] as const
 export default async function VerificationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string }>
+  searchParams: Promise<{ status?: string; page?: string }>
 }) {
-  const { status: statusParam } = await searchParams
+  const { status: statusParam, page: pageParam } = await searchParams
+  const page = Math.min(10000, Math.max(0, Number.isFinite(Number(pageParam)) ? Math.trunc(Number(pageParam)) : 0))
   const status = TABS.includes(statusParam as (typeof TABS)[number]) ? statusParam! : 'pending'
   const supabase = createServiceClient()
 
-  const { data } = await supabase
+  const { data, count, error } = await supabase
     .from('cert_verifications')
-    .select('id, coach_id, cert_name, file_path, status, review_note, created_at, coach:coach_profiles(title, profiles(full_name))')
+    .select('id, coach_id, cert_name, file_path, status, review_note, created_at, coach:coach_profiles(title, profiles(full_name))', { count: 'exact' })
     .eq('status', status)
     .order('created_at', { ascending: status === 'pending' })
-    .limit(100)
+    .order('id', { ascending: true })
+    .range(page * 50, page * 50 + 49)
   const rows = (data ?? []) as unknown as Row[]
 
   // cert-docs is private — sign each proof for this page view.
   const signed = new Map<string, string>()
-  if (rows.length) {
-    const { data: urls } = await supabase.storage.from('cert-docs').createSignedUrls(rows.map((r) => r.file_path), 60 * 10)
+  const validPaths = rows.filter(r => validCertificatePath(r.file_path, r.coach_id)).map(r => r.file_path)
+  if (validPaths.length) {
+    const { data: urls } = await supabase.storage.from('cert-docs').createSignedUrls(validPaths, 60 * 10)
     for (const u of urls ?? []) if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl)
   }
 
@@ -57,7 +61,7 @@ export default async function VerificationsPage({
         ))}
       </div>
 
-      {rows.length === 0 ? (
+      {error ? <p role="alert" className="text-destructive">Could not load submissions. Refresh to try again.</p> : rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nothing {status}.</p>
       ) : (
         rows.map((r) => {
@@ -72,7 +76,7 @@ export default async function VerificationsPage({
                   </a>
                 ) : (
                   <div className="h-40 w-40 rounded border flex items-center justify-center text-xs text-muted-foreground">
-                    No file
+                    Proof unavailable
                   </div>
                 )}
                 <div className="flex-1 space-y-2 text-sm">
@@ -95,6 +99,10 @@ export default async function VerificationsPage({
           )
         })
       )}
+      <div className="flex justify-between text-sm">
+        {page > 0 ? <Link href={`/verifications?status=${status}&page=${page - 1}`}>Previous</Link> : <span />}
+        {!error && (count ?? 0) > (page + 1) * 50 && <Link href={`/verifications?status=${status}&page=${page + 1}`}>Next</Link>}
+      </div>
     </div>
   )
 }

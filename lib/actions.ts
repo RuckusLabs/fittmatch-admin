@@ -1,5 +1,7 @@
 'use server'
 
+import { validCertificatePath } from '@/lib/certificate-proof'
+
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { revalidatePath } from 'next/cache'
@@ -465,7 +467,9 @@ export async function deleteUser(
   // Storage is not part of the auth/profile FK cascade. Keep the account and match
   // rows available if cleanup fails so an administrator can safely retry.
   try {
-    await removeUserMedia(serviceClient, userId)
+    const { error: retirementError } = await serviceClient.rpc('begin_account_deletion', { p_user: userId })
+  if (retirementError) return { error: retirementError.message }
+  await removeUserMedia(serviceClient, userId)
   } catch (error) {
     return { error: `Could not remove uploaded files: ${error instanceof Error ? error.message : 'Please retry account deletion.'}` }
   }
@@ -631,69 +635,28 @@ export async function revokeBetaAccess(userId: string): Promise<{ error: string 
   return { error: null }
 }
 
-export async function giftPro(
-  userId: string,
-  days: number
-): Promise<{ error: string | null }> {
+export async function giftPro(userId: string, days: number): Promise<{ error: string | null }> {
   const adminId = await requireAdmin(ADMIN_ONLY)
-  const serviceClient = createServiceClient()
+  if (!Number.isInteger(days) || days < 1 || days > 365) return { error: 'Choose between 1 and 365 days.' }
+  const service = createServiceClient()
+  const { data: profile, error: profileError } = await service.from('profiles').select('role, is_banned').eq('id', userId).single()
+  if (profileError || !profile || profile.is_banned || !['coach', 'client'].includes(profile.role)) return { error: 'Choose an active coach or client account.' }
   const now = new Date()
-  const periodEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000).toISOString()
-
-  // Role-specific tier so Coach Pro and Client Pro are distinguishable in reporting/MRR.
-  const { data: profile } = await serviceClient
-    .from('profiles')
-    .select('role')
-    .eq('id', userId)
-    .single()
-  const tier = profile?.role === 'coach' ? 'coach_pro' : 'client_pro'
-
-  const { data: existing, error: existingError } = await serviceClient
-    .from('subscriptions')
-    .select('id, provider, status')
-    .eq('user_id', userId)
-    .order('updated_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-  if (existingError) return { error: existingError.message }
-  // The next RevenueCat webhook would overwrite the gift anyway, and editing a paid
-  // subscription's period misrepresents billing.
-  if (existing?.provider === 'revenuecat' && existing.status === 'active') {
-    return { error: 'User has an active paid subscription — nothing to gift.' }
-  }
-
-  const payload = {
-    tier,
-    status: 'active',
-    billing_period: null,
-    current_period_start: now.toISOString(),
-    current_period_end: periodEnd,
-  }
-
-  const { error } = existing
-    ? await serviceClient.from('subscriptions').update(payload).eq('id', existing.id)
-    : await serviceClient.from('subscriptions').insert({ user_id: userId, ...payload })
-
+  const expiresAt = new Date(now.getTime() + days * 86400000).toISOString()
+  const { error } = await service.from('admin_access').upsert({ user_id: userId, granted_by: adminId,
+    granted_at: now.toISOString(), expires_at: expiresAt, revoked_at: null }, { onConflict: 'user_id' })
   if (error) return { error: error.message }
-
-  await logAudit(adminId, 'gift_pro', 'user', userId, { days, tier, period_end: periodEnd })
+  await logAudit(adminId, 'gift_pro', 'user', userId, { days, tier: `${profile.role}_pro`, period_end: expiresAt })
   revalidatePath(`/users/${userId}`)
   return { error: null }
 }
 
 export async function revokePro(userId: string): Promise<{ error: string | null }> {
   const adminId = await requireAdmin(ADMIN_ONLY)
-  const serviceClient = createServiceClient()
-
-  const { error } = await serviceClient
-    .from('subscriptions')
-    .update({ status: 'canceled', tier: 'free', current_period_end: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('status', 'active')
-    .or('provider.is.null,provider.neq.revenuecat')
-
+  const { data, error } = await createServiceClient().from('admin_access').update({ revoked_at: new Date().toISOString() })
+    .eq('user_id', userId).is('revoked_at', null).select('user_id')
   if (error) return { error: error.message }
-
+  if (!data?.length) return { error: 'This account has no administrative gift to revoke.' }
   await logAudit(adminId, 'revoke_pro', 'user', userId, {})
   revalidatePath(`/users/${userId}`)
   return { error: null }
@@ -794,6 +757,17 @@ export async function reviewCert(
 ): Promise<{ error: string | null }> {
   const adminId = await requireAdmin(MODERATORS)
   const serviceClient = createServiceClient()
+  if (!['approved', 'rejected'].includes(decision)) return { error: 'Choose a valid review decision.' }
+  const { data: proof, error: proofError } = await serviceClient.from('cert_verifications')
+    .select('coach_id, cert_name, file_path, status').eq('id', verificationId).single()
+  if (proofError || !proof) return { error: proofError?.message ?? 'Certificate not found.' }
+  if (proof.status !== 'pending') return { error: 'This submission has already been reviewed. Refresh the page.' }
+  if (decision === 'approved') {
+    if (!validCertificatePath(proof.file_path, proof.coach_id)) return { error: 'This proof does not belong to the submitting coach.' }
+    const filename = proof.file_path.slice(proof.coach_id.length + 1)
+    const { data: files, error: fileError } = await serviceClient.storage.from('cert-docs').list(proof.coach_id, { search: filename, limit: 100 })
+    if (fileError || !files?.some(file => file.name === filename && !!file.id)) return { error: 'Proof unavailable. Ask the coach to upload it again.' }
+  }
 
   const { data: row, error } = await serviceClient
     .from('cert_verifications')
@@ -804,6 +778,8 @@ export async function reviewCert(
       reviewed_at: new Date().toISOString(),
     })
     .eq('id', verificationId)
+    .eq('status', 'pending')
+    .eq('file_path', proof.file_path)
     .select('coach_id, cert_name')
     .single()
   if (error) return { error: error.message }

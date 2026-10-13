@@ -57,12 +57,12 @@ export function GiftProPanel({ userId, role, currentPeriodEnd, subStatus }: Prop
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Manually grant {proLabel} for a fixed period. Overwrites any existing subscription record.
+          Grant complimentary {proLabel} for a fixed period. Paid subscriptions and beta approvals stay independent.
         </p>
         {done ? (
-          <p className="text-sm text-green-600">Subscription updated.</p>
+          <p className="text-sm text-green-600">Gift updated.</p>
         ) : !currentPeriodEnd ? (
-          <p className="text-sm text-muted-foreground">No active subscription</p>
+          <p className="text-sm text-muted-foreground">No administrative gift</p>
         ) : (
           <p className={`text-sm ${isActive ? 'text-green-600' : 'text-destructive'}`}>
             {isActive ? 'Pro active · expires' : 'Pro expired ·'}{' '}

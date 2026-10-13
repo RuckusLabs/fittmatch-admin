@@ -40,7 +40,7 @@ const actions = load('lib/actions.ts', {
   'next/headers': { cookies: async () => ({ getAll: () => [] }) },
   '@supabase/ssr': { createServerClient: () => ({ auth: { getUser: async () => ({ data: { user: authenticated ? { id: 'admin' } : null } }) } }) },
   'next/cache': { revalidatePath: () => calls.push({ refresh: true }) },
-  '@/lib/supabase-server': { createServiceClient: () => client }, '@/lib/labels': labels, '@/lib/account-media': {},
+  '@/lib/supabase-server': { createServiceClient: () => client }, '@/lib/labels': labels, '@/lib/account-media': {}, '@/lib/certificate-proof': load('lib/certificate-proof.ts', {}),
 });
 (async () => {
   for (const item of fixture.cases.filter(row => row.value)) {
