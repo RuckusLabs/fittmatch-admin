@@ -23,6 +23,8 @@ import { Check, EyeOff, Pencil, Zap } from 'lucide-react'
 import { tierLabel, UUID_RE } from '@/lib/labels'
 import { EndBoostButton } from '@/components/EndBoostButton'
 import { ReviewsPanel } from '@/components/ReviewsPanel'
+import { PublicProfileLinkPanel } from '@/components/PublicProfileLinkPanel'
+import { getPublicProfileLink } from '@/lib/public-profile-url'
 
 export default async function UserDetailPage({
   params,
@@ -128,6 +130,7 @@ export default async function UserDetailPage({
 
   const coachProfile = profile.coach_profiles
   const clientProfile = profile.client_profiles
+  const publicProfileLink = await getPublicProfileLink(supabase, profile)
   // authUser is already the `data` field from getUserById: { user: User | null }
   const authData = (authUser as any)?.user ?? null
   const superLikeUsed = superLikeRow?.used ?? 0
@@ -177,7 +180,7 @@ export default async function UserDetailPage({
                     </Badge>
                   )}
                   {profile.role === 'coach' && (
-                    profile.open_to_offers !== false
+                    profile.open_to_offers === true
                       ? <Badge variant="outline" className="gap-1 text-green-600 border-green-300"><Check size={12} /> Open to offers</Badge>
                       : <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300"><EyeOff size={12} /> Hidden from search</Badge>
                   )}
@@ -207,6 +210,7 @@ export default async function UserDetailPage({
             </div>
           </div>
 
+          <PublicProfileLinkPanel {...publicProfileLink} />
           <Separator className="my-4" />
 
           {/* Metrics row */}
