@@ -1,4 +1,5 @@
 // Display helpers for enum-ish columns shared with the mobile app's schema.
+import { parseChatMediaPath, type ChatMediaIdentity } from '@/lib/chat-media'
 
 export type MatchStatus = 'active' | 'pending' | 'expired' | 'archived' | 'unmatched' | 'blocked' | 'declined'
 
@@ -50,11 +51,8 @@ export function tierLabel(tier: string | null | undefined): string {
 export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Object path inside the chat-media bucket from a stored message image URL.
-export function chatMediaPath(url: string): string | null {
-  const marker = '/chat-media/'
-  const i = url.indexOf(marker)
-  if (i === -1) return null
-  return decodeURIComponent(url.slice(i + marker.length).split('?')[0])
+export function chatMediaPath(url: unknown, expected?: ChatMediaIdentity): string | null {
+  return parseChatMediaPath(url, process.env.NEXT_PUBLIC_SUPABASE_URL, expected)
 }
 
 // Hiring pipeline (applications.stage) — mirrors the mobile app's lib/constants.ts.

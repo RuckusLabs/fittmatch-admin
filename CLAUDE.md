@@ -40,7 +40,7 @@ Internal Next.js 15 admin dashboard for FittMatch moderation and operations. Rea
 | `removeListing(listingId)` | Sets `job_listings.status = 'removed'` |
 | `markReportsAsReviewing(ids[])` | Bulk status update |
 | `changeUserRole(userId, newRole)` | Flips `profiles.role`; upserts missing coach/client profile row (`ignoreDuplicates: true`); logs audit |
-| `deleteUser(userId, email)` | `auth.admin.deleteUser` (FK cascades clean up; reports/audit keep history with nulls); audits after success |
+| `deleteUser(userId, email)` | Removes profile photos, certificates, videos, and all matched conversation media before `auth.admin.deleteUser`; stops on storage failure so cleanup can be retried. FK cascades remove related rows; reports/audit keep history with nulls. Audits after success |
 | `deleteMatch(matchId, userId)` | Deletes match row (cascade removes messages); logs audit |
 | `restoreMatch(matchId)` | Unmatched/blocked only → `status = 'active'` and deletes the pair's block rows |
 | `removeBlock(blockerId, blockedId)` | Deletes row from `blocks`; logs audit as `remove_block` |
@@ -92,3 +92,7 @@ npm run dev
 ## Deploying
 
 Vercel. After deploy, add the domain to Supabase → Authentication → Redirect URLs.
+
+## Approval-only TestFlight beta
+
+The user detail page has a Beta access panel. `grantBetaAccess(userId)` requires an administrator and grants exactly seven days from approval; renew explicitly starts a new seven-day period. `revokeBetaAccess(userId)` revokes only the independent beta grant and verifies a row changed. Neither action changes paid subscriptions. Both audit successful changes. The mobile backend migration `20261012000200_beta_access.sql` must be deployed before this admin version. No automatic enrollment or email invitation is sent.

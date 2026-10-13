@@ -12,6 +12,7 @@ import { ReportBadge } from '@/components/ReportBadge'
 import { SetProfileCompleteButton } from '@/components/SetProfileCompleteButton'
 import { ResetSwipesPanel } from '@/components/ResetSwipesPanel'
 import { GiftProPanel } from '@/components/GiftProPanel'
+import { BetaAccessPanel } from '@/components/BetaAccessPanel'
 import { SuperLikePanel } from '@/components/SuperLikePanel'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -45,6 +46,8 @@ export default async function UserDetailPage({
     { data: blocksGiven },
     { data: blocksReceived },
     { data: superLikeRow },
+    { data: betaAccess, error: betaAccessError },
+    { data: adminAccess },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -110,6 +113,8 @@ export default async function UserDetailPage({
       .eq('user_id', id)
       .eq('month', new Date().toISOString().slice(0, 7))
       .maybeSingle(),
+    supabase.from('beta_access').select('expires_at, revoked_at').eq('user_id', id).maybeSingle(),
+    supabase.from('admin_access').select('expires_at, revoked_at').eq('user_id', id).maybeSingle(),
   ])
 
   if (!profile) notFound()
@@ -421,11 +426,13 @@ export default async function UserDetailPage({
       {profile.role === 'client' && (
         <div className="grid grid-cols-2 gap-6">
           <ResetSwipesPanel userId={id} />
+          <BetaAccessPanel userId={id} expiresAt={betaAccess?.expires_at ?? null}
+            revokedAt={betaAccess?.revoked_at ?? null} unavailable={!!betaAccessError} />
           <GiftProPanel
             userId={id}
             role="client"
-            currentPeriodEnd={subscription?.current_period_end ?? null}
-            subStatus={subscription?.status ?? null}
+            currentPeriodEnd={adminAccess?.expires_at ?? null}
+            subStatus={adminAccess && !adminAccess.revoked_at ? 'active' : null}
           />
         </div>
       )}
@@ -434,11 +441,13 @@ export default async function UserDetailPage({
       {profile.role === 'coach' && (
         <div className="grid grid-cols-2 gap-6">
           <SuperLikePanel userId={id} used={superLikeUsed} />
+          <BetaAccessPanel userId={id} expiresAt={betaAccess?.expires_at ?? null}
+            revokedAt={betaAccess?.revoked_at ?? null} unavailable={!!betaAccessError} />
           <GiftProPanel
             userId={id}
             role="coach"
-            currentPeriodEnd={subscription?.current_period_end ?? null}
-            subStatus={subscription?.status ?? null}
+            currentPeriodEnd={adminAccess?.expires_at ?? null}
+            subStatus={adminAccess && !adminAccess.revoked_at ? 'active' : null}
           />
         </div>
       )}

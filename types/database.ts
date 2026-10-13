@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_deletions: {
+        Row: {
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_deletions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_deletions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_access: {
+        Row: {
+          expires_at: string
+          granted_at: string
+          granted_by: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_audit_log: {
         Row: {
           action: string | null
@@ -122,6 +205,7 @@ export type Database = {
           stage: string
           stage_changed_at: string
           updated_at: string
+          withdrawn_at: string | null
         }
         Insert: {
           coach_id: string
@@ -132,6 +216,7 @@ export type Database = {
           stage?: string
           stage_changed_at?: string
           updated_at?: string
+          withdrawn_at?: string | null
         }
         Update: {
           coach_id?: string
@@ -142,6 +227,7 @@ export type Database = {
           stage?: string
           stage_changed_at?: string
           updated_at?: string
+          withdrawn_at?: string | null
         }
         Relationships: [
           {
@@ -156,6 +242,101 @@ export type Database = {
             columns: ["listing_id"]
             isOneToOne: false
             referencedRelation: "job_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_access: {
+        Row: {
+          expires_at: string
+          granted_at: string
+          granted_by: string | null
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          expires_at: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          expires_at?: string
+          granted_at?: string
+          granted_by?: string | null
+          revoked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_granted_by_fkey"
+            columns: ["granted_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "beta_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_events: {
+        Row: {
+          created_at: string
+          event_id: string
+          event_ms: number
+          payload_hash: string
+          result: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          event_ms: number
+          payload_hash: string
+          result: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          event_ms?: number
+          payload_hash?: string
+          result?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -484,6 +665,42 @@ export type Database = {
           },
         ]
       }
+      daily_entity_views: {
+        Row: {
+          entity_id: string
+          entity_type: string
+          viewed_on: string
+          viewer_id: string
+        }
+        Insert: {
+          entity_id: string
+          entity_type: string
+          viewed_on?: string
+          viewer_id: string
+        }
+        Update: {
+          entity_id?: string
+          entity_type?: string
+          viewed_on?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_entity_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_entity_views_viewer_id_fkey"
+            columns: ["viewer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disposable_email_domains: {
         Row: {
           added_at: string | null
@@ -796,6 +1013,8 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          client_message_id: string | null
+          client_request_hash: string | null
           created_at: string | null
           deleted_at: string | null
           id: string
@@ -808,6 +1027,8 @@ export type Database = {
         }
         Insert: {
           body: string
+          client_message_id?: string | null
+          client_request_hash?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -820,6 +1041,8 @@ export type Database = {
         }
         Update: {
           body?: string
+          client_message_id?: string | null
+          client_request_hash?: string | null
           created_at?: string | null
           deleted_at?: string | null
           id?: string
@@ -1448,6 +1671,8 @@ export type Database = {
           promo_code_id: string | null
           provider: string | null
           provider_customer_id: string | null
+          provider_event_ms: number | null
+          provider_event_rank: number | null
           provider_subscription_id: string | null
           status: string | null
           tier: string | null
@@ -1467,6 +1692,8 @@ export type Database = {
           promo_code_id?: string | null
           provider?: string | null
           provider_customer_id?: string | null
+          provider_event_ms?: number | null
+          provider_event_rank?: number | null
           provider_subscription_id?: string | null
           status?: string | null
           tier?: string | null
@@ -1486,6 +1713,8 @@ export type Database = {
           promo_code_id?: string | null
           provider?: string | null
           provider_customer_id?: string | null
+          provider_event_ms?: number | null
+          provider_event_rank?: number | null
           provider_subscription_id?: string | null
           status?: string | null
           tier?: string | null
@@ -1538,27 +1767,33 @@ export type Database = {
       swipes: {
         Row: {
           created_at: string | null
+          decision_revision: number
           direction: string
           id: string
           is_super: boolean
+          pending_notification_type: string | null
           swiper_id: string
           target_coach_id: string | null
           target_listing_id: string | null
         }
         Insert: {
           created_at?: string | null
+          decision_revision?: number
           direction: string
           id?: string
           is_super?: boolean
+          pending_notification_type?: string | null
           swiper_id: string
           target_coach_id?: string | null
           target_listing_id?: string | null
         }
         Update: {
           created_at?: string | null
+          decision_revision?: number
           direction?: string
           id?: string
           is_super?: boolean
+          pending_notification_type?: string | null
           swiper_id?: string
           target_coach_id?: string | null
           target_listing_id?: string | null
@@ -1831,6 +2066,9 @@ export type Database = {
         Args: { p_meters: number; p_point: unknown; p_points: Json }
         Returns: boolean
       }
+      apply_billing_event: { Args: { p_event: Json }; Returns: string }
+      begin_account_deletion: { Args: { p_user: string }; Returns: undefined }
+      block_profile: { Args: { p_other: string }; Returns: undefined }
       can_review: { Args: { p_reviewee: string }; Returns: boolean }
       coach_ids_near: {
         Args: { p_lat: number; p_lng: number; p_radius_miles: number }
@@ -2037,7 +2275,19 @@ export type Database = {
         }
         Returns: Json[]
       }
+      get_my_admin_access: {
+        Args: never
+        Returns: {
+          expires_at: string
+        }[]
+      }
       get_my_analytics: { Args: never; Returns: Json }
+      get_my_beta_access: {
+        Args: never
+        Returns: {
+          expires_at: string
+        }[]
+      }
       get_my_profile: {
         Args: never
         Returns: {
@@ -2117,6 +2367,19 @@ export type Database = {
         Args: { p_limit: number; p_month: string; p_user_id: string }
         Returns: number
       }
+      insert_message_once: {
+        Args: {
+          p_body: string
+          p_client_message_id: string
+          p_image_url: string
+          p_kind: string
+          p_match_id: string
+          p_meta: Json
+          p_request_hash: string
+          p_sender_id: string
+        }
+        Returns: Json
+      }
       invoke_weekly_digest: { Args: never; Returns: undefined }
       is_admin: { Args: never; Returns: boolean }
       is_disposable_email: { Args: { p_email: string }; Returns: boolean }
@@ -2136,6 +2399,7 @@ export type Database = {
         }[]
       }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_match_read: { Args: { p_match_id: string }; Returns: Json }
       match_listings: {
         Args: { p_match_id: string }
         Returns: {
@@ -2195,9 +2459,43 @@ export type Database = {
       postgis_version: { Args: never; Returns: string }
       postgis_wagyu_version: { Args: never; Returns: string }
       process_listing_expiry: { Args: never; Returns: undefined }
+      record_swipe_decision: {
+        Args: {
+          p_direction: string
+          p_is_super?: boolean
+          p_target_coach_id: string
+          p_target_listing_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       redeem_promo_code: { Args: { p_code: string }; Returns: string }
       refresh_review_stats: { Args: { p_user: string }; Returns: undefined }
       remove_push_token: { Args: { p_token: string }; Returns: undefined }
+      resolve_swipe_decision: {
+        Args: {
+          p_client_id: string
+          p_coach_id: string
+          p_create_pending: boolean
+          p_listing_id: string
+          p_mutual: boolean
+          p_pending_side: string
+          p_revision: number
+          p_swipe_id: string
+        }
+        Returns: Json
+      }
+      resolve_swipe_match: {
+        Args: {
+          p_client_id: string
+          p_coach_id: string
+          p_create_pending: boolean
+          p_listing_id: string
+          p_mutual: boolean
+          p_pending_side: string
+        }
+        Returns: Json
+      }
       saved_search_digest_batch: {
         Args: { p_limit?: number }
         Returns: {
@@ -2830,6 +3128,75 @@ export type Database = {
           table_name: string
         }
         Returns: string
+      }
+      valid_certificate_path: {
+        Args: { p_coach: string; p_path: string }
+        Returns: boolean
+      }
+      visible_applications: {
+        Args: { p_viewer: string }
+        Returns: {
+          coach_id: string
+          created_at: string
+          id: string
+          listing_id: string
+          notes: string | null
+          stage: string
+          stage_changed_at: string
+          updated_at: string
+          withdrawn_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "applications"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      visible_matches: {
+        Args: { p_viewer: string }
+        Returns: {
+          client_id: string
+          client_unread_count: number | null
+          coach_id: string
+          coach_unread_count: number | null
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          last_message_preview: string | null
+          listing_id: string | null
+          pending_expires_at: string | null
+          pending_side: string | null
+          status: string
+          status_before_archive: string | null
+          updated_at: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "matches"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      visible_swipes: {
+        Args: { p_viewer: string }
+        Returns: {
+          created_at: string | null
+          decision_revision: number
+          direction: string
+          id: string
+          is_super: boolean
+          pending_notification_type: string | null
+          swiper_id: string
+          target_coach_id: string | null
+          target_listing_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "swipes"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       weekly_digest: { Args: never; Returns: undefined }
     }
